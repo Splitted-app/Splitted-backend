@@ -7,43 +7,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Models.CsvModels;
+using System.Globalization;
+using CsvConversion.Mappers;
 
 namespace CsvConversion
 {
     public class IngCsvReader : BankCsvReader
     {
-        private class IngMapping : ClassMap<TransactionCsv>
-        {
-            private string[] possibleAmountNames = new string[]
-            {
-                "Kwota transakcji (waluta rachunku)",
-                "Kwota blokady/zwolnienie blokady",
-                "Kwota płatności w walucie"
-            };
-
-            private IngMapping()
-            {
-                Map(transaction => transaction.Currency).Name("Waluta");
-                Map(transaction => transaction.Date).Name("Data transakcji");
-                Map(transaction => transaction.Description).Name("Dane kontrahenta");
-                Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
-            }
-
-            private decimal MapAmount(IReaderRow row)
-            {
-                decimal amount;
-                bool ifConverted;
-
-                foreach (var possibleAmountName in possibleAmountNames)
-                {
-                    ifConverted = Decimal.TryParse((row.GetField<string>(possibleAmountName)), out amount);
-                    if (ifConverted) return amount;
-                }
-
-                return 0;
-            }
-        }
-
         public IngCsvReader(string path) : base(path)
         { 
         }
@@ -51,20 +21,23 @@ namespace CsvConversion
 
         protected override CsvConfiguration SetConfiguration()
         {
-            return new CsvConfiguration(cultureInfo: System.Globalization.CultureInfo.CurrentCulture)
+            return new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture)
             {
                 MissingFieldFound = null,
-                DetectDelimiter = true,
+                Delimiter = ";" ,
                 BadDataFound = null,
             };
         }
 
         protected override void SkipToHeaderRecord(CsvReader csvReader)
         {
-            for (int i = 0; i < 14; i++)
+            while (true)
             {
                 csvReader.Read();
+                string? field = csvReader.GetField<string>(5);
+                if (field is not null && field.Contains("Suma obciążeń")) break; // moze zawierać jeszcze co innego jak saldo zakryte - pamiętać by dopisać
             }
+            csvReader.Read();
             csvReader.ReadHeader();
         }
 
@@ -72,13 +45,15 @@ namespace CsvConversion
         {
             List<TransactionCsv?> transactions = new List<TransactionCsv?>();   
             var config = SetConfiguration();
-            using (var reader = new StreamReader(path))
+            using (var reader = new StreamReader(path, Encoding.UTF8))
             using (var csvReader = new CsvReader(reader, config))
             {
-                csvReader.Context.RegisterClassMap<IngMapping>();
+                csvReader.Context.RegisterClassMap<IngMapper>();
                 SkipToHeaderRecord(csvReader);
                 while (csvReader.Read())
                 {
+                    var field = csvReader.GetField<string>(0);
+                    if (field!.Equals("Dokument ma charakter informacyjny, nie stanowi dowodu księgowego")) break;
                     var transaction = csvReader.GetRecord<TransactionCsv?>();
                     transactions.Add(transaction);
                 }

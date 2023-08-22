@@ -14,6 +14,8 @@ namespace Models.CsvModels
 
         public string? Description { get; set; }
 
+        public TransactionTypeEnum TransactionType { get; set; }
+
         public string? Category { get; set; }
 
     }

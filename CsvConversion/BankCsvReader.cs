@@ -1,6 +1,6 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
-using Splitted_backend.Models.Entities;
+using Models.CsvModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +13,12 @@ namespace CsvConversion
     {
         protected string path;
 
+
         public BankCsvReader(string path)
         {
             this.path = path;   
         }
+
 
         protected abstract CsvConfiguration SetConfiguration();
 
