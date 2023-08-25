@@ -22,13 +22,23 @@ namespace CsvConversion.Mappers
 
         private IngMapper()
         {
-            Map(transaction => transaction.Currency).Name("Waluta");
+            Map(transaction => transaction.Currency).Convert(args => MapCurrency(args.Row));
             Map(transaction => transaction.Date).Name("Data transakcji");
             Map(transaction => transaction.Description).Name("Dane kontrahenta");
             Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
             Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row));
         }
 
+
+        private string MapCurrency(IReaderRow row)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                string currency = row.GetField<string>("Waluta", i)!;
+                if (!string.IsNullOrEmpty(currency)) return currency;
+            }
+            return "";
+        }
 
         private decimal MapAmount(IReaderRow row)
         {
@@ -37,7 +47,7 @@ namespace CsvConversion.Mappers
 
             foreach (var possibleAmountName in possibleAmountNames)
             {
-                ifConverted = Decimal.TryParse((row.GetField<string>(possibleAmountName)), out amount);
+                ifConverted = decimal.TryParse((row.GetField<string>(possibleAmountName)), out amount);
                 if (ifConverted) return amount;
             }
 
@@ -53,5 +63,7 @@ namespace CsvConversion.Mappers
             else if (possibleTransferNames.Any(ptn => title.Contains(ptn))) return TransactionTypeEnum.Transfer;
             else return TransactionTypeEnum.Other;
         }
+
+        
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using Models.CsvModels;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,12 @@ namespace CsvConversion
             this.path = path;   
         }
 
+
+        protected void SetConverterOptions<T>(CsvReader csvReader, string[] formats)
+        {
+            var options = new TypeConverterOptions { Formats = formats };
+            csvReader.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+        }
 
         protected abstract CsvConfiguration SetConfiguration();
 
