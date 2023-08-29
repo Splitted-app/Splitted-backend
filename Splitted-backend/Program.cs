@@ -7,9 +7,10 @@ public static class MainClass
 {
     public static void Main(string [] args)
     {
-        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\pekao.csv";
-        BankCsvReader reader = new PekaoCsvReader(path);
+        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\Pko1.csv";
+        BankCsvReader reader = new PkoCsvReader(path);
         var transactions = reader.GetTransactions();
+
         Console.WriteLine(transactions[0].Description);
     }
 }

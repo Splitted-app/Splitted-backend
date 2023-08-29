@@ -51,9 +51,5 @@ namespace CsvConversion
             }
             return transactions;
         }
-
-        
-
-        
     }
 }

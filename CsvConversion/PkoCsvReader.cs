@@ -1,21 +1,20 @@
-﻿using CsvHelper.Configuration;
+﻿using CsvConversion.Mappers;
+using CsvHelper.Configuration;
 using CsvHelper;
+using Models.CsvModels;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Models.CsvModels;
-using System.Globalization;
-using CsvConversion.Mappers;
 
 namespace CsvConversion
 {
-    public class IngCsvReader : BankCsvReader
+    public class PkoCsvReader : BankCsvReader
     {
-        public IngCsvReader(string path) : base(path)
-        { 
+        public PkoCsvReader(string path) : base(path)
+        {
         }
 
 
@@ -24,44 +23,34 @@ namespace CsvConversion
             return new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture)
             {
                 MissingFieldFound = null,
-                Delimiter = ";" ,
+                Delimiter = ",",
                 BadDataFound = null,
             };
         }
 
         protected override void SkipToHeaderRecord(CsvReader csvReader)
         {
-            while (true)
-            {
-                csvReader.Read();
-                string? field = csvReader.GetField<string>(0);
-                if (field is not null && field.Contains("Data")) break;
-            }
+            csvReader.Read();
             csvReader.ReadHeader();
-            var a = csvReader.HeaderRecord;
         }
 
         public override List<TransactionCsv?> GetTransactions()
         {
-            List<TransactionCsv?> transactions = new List<TransactionCsv?>();   
+            List<TransactionCsv?> transactions = new List<TransactionCsv?>();
             var config = SetConfiguration();
             using (var reader = new StreamReader(path, Encoding.UTF8))
             using (var csvReader = new CsvReader(reader, config))
             {
-                csvReader.Context.RegisterClassMap<IngMapper>();
+                csvReader.Context.RegisterClassMap<PkoMapper>();
                 SetConverterOptions<DateTime>(csvReader, new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
                 SkipToHeaderRecord(csvReader);
                 while (csvReader.Read())
                 {
-                    var field = csvReader.GetField<string>(0);
-                    if (field!.Equals("Dokument ma charakter informacyjny, nie stanowi dowodu księgowego")) break;
                     var transaction = csvReader.GetRecord<TransactionCsv?>();
                     transactions.Add(transaction);
                 }
             }
             return transactions;
         }
-
-       
     }
 }

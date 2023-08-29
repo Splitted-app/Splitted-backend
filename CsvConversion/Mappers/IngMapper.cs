@@ -4,7 +4,7 @@ using Models.CsvModels;
 
 namespace CsvConversion.Mappers
 {
-    public class IngMapper : ClassMap<TransactionCsv>
+    internal class IngMapper : ClassMap<TransactionCsv>
     {
         private string[] possibleAmountNames = new string[]
         {
@@ -63,7 +63,5 @@ namespace CsvConversion.Mappers
             else if (possibleTransferNames.Any(ptn => title.Contains(ptn))) return TransactionTypeEnum.Transfer;
             else return TransactionTypeEnum.Other;
         }
-
-        
     }
 }
