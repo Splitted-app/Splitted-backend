@@ -7,8 +7,8 @@ public static class MainClass
 {
     public static void Main(string [] args)
     {
-        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\Santander-1.csv";
-        BankCsvReader reader = new SantanderCsvReader(path);
+        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\pekao.csv";
+        BankCsvReader reader = new PekaoCsvReader(path);
         var transactions = reader.GetTransactions();
         Console.WriteLine(transactions[0].Description);
     }

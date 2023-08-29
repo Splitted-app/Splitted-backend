@@ -24,7 +24,7 @@ namespace CsvConversion
         protected void SetConverterOptions<T>(CsvReader csvReader, string[] formats)
         {
             var options = new TypeConverterOptions { Formats = formats };
-            csvReader.Context.TypeConverterOptionsCache.AddOptions<DateTime>(options);
+            csvReader.Context.TypeConverterOptionsCache.AddOptions<T>(options);
         }
 
         protected abstract CsvConfiguration SetConfiguration();

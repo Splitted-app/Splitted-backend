@@ -47,7 +47,7 @@ namespace CsvConversion.Mappers
 
             foreach (var possibleAmountName in possibleAmountNames)
             {
-                ifConverted = decimal.TryParse((row.GetField<string>(possibleAmountName)), out amount);
+                ifConverted = decimal.TryParse(row.GetField<string>(possibleAmountName)!.Replace(".", ","), out amount);
                 if (ifConverted) return amount;
             }
 
