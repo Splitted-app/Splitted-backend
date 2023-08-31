@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace CsvConversion
 {
-    public class MbankCsvReader : BankCsvReader
+    public class MbankCsvReader : BaseCsvReader
     {
         public MbankCsvReader(string path) : base(path)
         {

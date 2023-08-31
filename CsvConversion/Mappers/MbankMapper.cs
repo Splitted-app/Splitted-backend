@@ -9,22 +9,15 @@ using System.Threading.Tasks;
 
 namespace CsvConversion.Mappers
 {
-    internal class MbankMapper : ClassMap<TransactionCsv>
+    internal class MbankMapper : BaseMapper
     {
-        private string[] possibleTransferNames = new string[]
-        {
-            "przekazanie",
-            "przelew",
-        };
-
-
         private MbankMapper()
         {
             Map(transaction => transaction.Currency).Convert(args => MapCurrency(args.Row));
             Map(transaction => transaction.Date).Name("Data operacji");
             Map(transaction => transaction.Description).Name("Opis operacji");
             Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
-            Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row));
+            Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row.GetField<string>("Opis operacji")!.ToLower()));
             Map(transaction => transaction.Category).Name("Kategoria");
         }
 
@@ -35,21 +28,11 @@ namespace CsvConversion.Mappers
             return amountCurrency.Split()[1];
         }
 
-        private decimal MapAmount(IReaderRow row)
+        protected override decimal MapAmount(IReaderRow row)
         {
             string amountCurrency = row.GetField<string>("Kwota")!;
             string amount = amountCurrency.Split()[0];
             return decimal.Parse(amount.Replace(".", ","));
-        }
-
-        private TransactionTypeEnum MapTransactionType(IReaderRow row)
-        {
-            string title = row.GetField<string>("Opis operacji")!.ToLower();
-
-            if (title.Contains("blik")) return TransactionTypeEnum.Blik;
-            else if (title.Contains("karty")) return TransactionTypeEnum.Card;
-            else if (possibleTransferNames.Any(ptn => title.Contains(ptn))) return TransactionTypeEnum.Transfer;
-            else return TransactionTypeEnum.Other;
         }
     }
 }

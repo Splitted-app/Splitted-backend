@@ -12,7 +12,7 @@ using CsvConversion.Mappers;
 
 namespace CsvConversion
 {
-    public class IngCsvReader : BankCsvReader
+    public class IngCsvReader : BaseCsvReader
     {
         public IngCsvReader(string path) : base(path)
         { 
@@ -38,7 +38,6 @@ namespace CsvConversion
                 if (field is not null && field.Contains("Data")) break;
             }
             csvReader.ReadHeader();
-            var a = csvReader.HeaderRecord;
         }
 
         public override List<TransactionCsv?> GetTransactions()

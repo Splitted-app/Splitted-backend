@@ -9,38 +9,19 @@ using System.Threading.Tasks;
 
 namespace CsvConversion.Mappers
 {
-    internal class PekaoMapper : ClassMap<TransactionCsv>
+    internal class PekaoMapper : BaseMapper
     {
-        private string[] possibleTransferNames = new string[]
-        {
-            "przekazanie",
-            "przelew",
-        };
-
-
         public PekaoMapper()
         {
             Map(transaction => transaction.Currency).Name("Waluta");
             Map(transaction => transaction.Date).Name("Data waluty");
             Map(transaction => transaction.Description).Name("Nadawca / Odbiorca");
             Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
-            Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row));
+            Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row.GetField<string>("Typ operacji")!.ToLower()));
             Map(transaction => transaction.Category).Name("Kategoria");
         }
 
 
-        private decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota operacji")!.Replace(".", ","));
-
-        private TransactionTypeEnum MapTransactionType(IReaderRow row)
-        {
-            string title = row.GetField<string>("Typ operacji")!.ToLower();
-
-            if (title.Contains("blik")) return TransactionTypeEnum.Blik;
-            else if (title.Contains("kartą")) return TransactionTypeEnum.Card;
-            else if (possibleTransferNames.Any(ptn => title.Contains(ptn))) return TransactionTypeEnum.Transfer;
-            else return TransactionTypeEnum.Other;
-        }
-
-
+        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota operacji")!.Replace(".", ","));
     }
 }

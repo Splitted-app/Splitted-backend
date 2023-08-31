@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace CsvConversion
 {
-    public class SantanderCsvReader : BankCsvReader
+    public class SantanderCsvReader : BaseCsvReader
     {
         public SantanderCsvReader(string path) : base(path)
         {
