@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32929.385
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Splitted-backend", "Splitted-backend\Splitted-backend.csproj", "{D2CD5D25-4B57-423E-87E1-3E09E2F15399}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Splitted-backend", "Splitted-backend\Splitted-backend.csproj", "{D2CD5D25-4B57-423E-87E1-3E09E2F15399}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsvConversion", "CsvConversion\CsvConversion.csproj", "{75887C63-75A2-400F-B385-3C7DBF6BF29C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{813F8623-8047-461B-9126-396F529F4331}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{D2CD5D25-4B57-423E-87E1-3E09E2F15399}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D2CD5D25-4B57-423E-87E1-3E09E2F15399}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D2CD5D25-4B57-423E-87E1-3E09E2F15399}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75887C63-75A2-400F-B385-3C7DBF6BF29C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75887C63-75A2-400F-B385-3C7DBF6BF29C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75887C63-75A2-400F-B385-3C7DBF6BF29C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75887C63-75A2-400F-B385-3C7DBF6BF29C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{813F8623-8047-461B-9126-396F529F4331}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{813F8623-8047-461B-9126-396F529F4331}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{813F8623-8047-461B-9126-396F529F4331}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{813F8623-8047-461B-9126-396F529F4331}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

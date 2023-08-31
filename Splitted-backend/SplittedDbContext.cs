@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Models.CsvModels;
 using Splitted_backend.Models.Entities;
 
 namespace Splitted_backend
