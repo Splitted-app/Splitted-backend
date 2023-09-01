@@ -1,6 +1,6 @@
 ﻿using CsvConversion.Mappers;
-using CsvHelper;
 using CsvHelper.Configuration;
+using CsvHelper;
 using Models.CsvModels;
 using System;
 using System.Collections.Generic;
@@ -9,20 +9,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CsvConversion
+namespace CsvConversion.Readers
 {
-    public class PekaoCsvReader : BaseCsvReader
+    public class PkoCsvReader : BaseCsvReader
     {
-        public PekaoCsvReader(string path) : base(path)
+        public PkoCsvReader(string path) : base(path)
         {
         }
+
 
         protected override CsvConfiguration SetConfiguration()
         {
             return new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture)
             {
                 MissingFieldFound = null,
-                Delimiter = ";",
+                Delimiter = ",",
                 BadDataFound = null,
             };
         }
@@ -36,12 +37,14 @@ namespace CsvConversion
         public override List<TransactionCsv?> GetTransactions()
         {
             List<TransactionCsv?> transactions = new List<TransactionCsv?>();
-            var config = SetConfiguration();
+            CsvConfiguration config = SetConfiguration();
+            ConvertToUtf8(path);
+
             using (var reader = new StreamReader(path, Encoding.UTF8))
             using (var csvReader = new CsvReader(reader, config))
             {
-                csvReader.Context.RegisterClassMap<PekaoMapper>();
-                SetConverterOptions<DateTime>(csvReader, new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
+                csvReader.Context.RegisterClassMap<PkoMapper>();
+                SetConverterOptions<DateTime>(csvReader, new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
                 SkipToHeaderRecord(csvReader);
                 while (csvReader.Read())
                 {

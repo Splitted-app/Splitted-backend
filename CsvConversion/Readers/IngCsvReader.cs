@@ -5,17 +5,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Models.CsvModels;
 using System.Globalization;
 using CsvConversion.Mappers;
 
-namespace CsvConversion
+namespace CsvConversion.Readers
 {
     public class IngCsvReader : BaseCsvReader
     {
         public IngCsvReader(string path) : base(path)
-        { 
+        {
         }
 
 
@@ -24,7 +23,7 @@ namespace CsvConversion
             return new CsvConfiguration(cultureInfo: CultureInfo.InvariantCulture)
             {
                 MissingFieldFound = null,
-                Delimiter = ";" ,
+                Delimiter = ";",
                 BadDataFound = null,
             };
         }
@@ -42,14 +41,17 @@ namespace CsvConversion
 
         public override List<TransactionCsv?> GetTransactions()
         {
-            List<TransactionCsv?> transactions = new List<TransactionCsv?>();   
-            var config = SetConfiguration();
+            List<TransactionCsv?> transactions = new List<TransactionCsv?>();
+            CsvConfiguration config = SetConfiguration();
+            ConvertToUtf8(path);
+
             using (var reader = new StreamReader(path, Encoding.UTF8))
             using (var csvReader = new CsvReader(reader, config))
             {
                 csvReader.Context.RegisterClassMap<IngMapper>();
                 SetConverterOptions<DateTime>(csvReader, new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
                 SkipToHeaderRecord(csvReader);
+
                 while (csvReader.Read())
                 {
                     var field = csvReader.GetField<string>(0);
@@ -61,6 +63,6 @@ namespace CsvConversion
             return transactions;
         }
 
-       
+
     }
 }

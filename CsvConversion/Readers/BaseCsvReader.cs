@@ -2,9 +2,9 @@
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Models.CsvModels;
+using System.Text;
 
-
-namespace CsvConversion
+namespace CsvConversion.Readers
 {
     public abstract class BaseCsvReader
     {
@@ -13,9 +13,14 @@ namespace CsvConversion
 
         public BaseCsvReader(string path)
         {
-            this.path = path;   
+            this.path = path;
         }
 
+        protected void ConvertToUtf8(string path)
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            EncodingConverter.Encode(path, Encoding.GetEncoding(1250), Encoding.UTF8);
+        }
 
         protected void SetConverterOptions<T>(CsvReader csvReader, string[] formats)
         {
