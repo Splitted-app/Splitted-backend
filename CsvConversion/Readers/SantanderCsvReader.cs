@@ -32,28 +32,15 @@ namespace CsvConversion.Readers
             };
         }
 
-        protected override void SkipToHeaderRecord(CsvReader csvReader) { }
-
-        public override List<TransactionCsv?> GetTransactions()
+        protected override void SkipToHeaderRecord(CsvReader csvReader)
         {
-            List<TransactionCsv?> transactions = new List<TransactionCsv?>();
-            CsvConfiguration config = SetConfiguration();
-            ConvertToUtf8(path);
-
-            using (var reader = new StreamReader(path, Encoding.UTF8))
-            using (var csvReader = new CsvReader(reader, config))
-            {
-                csvReader.Context.RegisterClassMap<SantanderMapper>();
-                SetConverterOptions<DateTime>(csvReader, new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
-                csvReader.Read();
-                SetCurrency(csvReader);
-                while (csvReader.Read())
-                {
-                    var transaction = csvReader.GetRecord<TransactionCsv?>();
-                    transactions.Add(transaction);
-                }
-            }
-            return transactions;
+            csvReader.Read();
+            SetCurrency(csvReader);
         }
+
+        protected override bool DetermineEndOfTransactions(CsvReader csvReader) => false;
+
+        public override List<TransactionCsv?> GetTransactions() => base.GetSpecificTransactions<SantanderMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
+        
     }
 }
