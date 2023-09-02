@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Models.CsvModels;
+using System.Text;
 
 namespace CsvConversion.Mappers
 {
@@ -22,5 +23,30 @@ namespace CsvConversion.Mappers
         private string MapCurrency(IReaderRow row) => currency;
 
         protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>(5)!.Replace(".", ","));
+
+        protected override string MapDescription(IReaderRow row)
+        {
+            string title = row.GetField<string>("Tytuł")!;
+            string contractorData = row.GetField<string>("Dane kontrahenta")!;
+            StringBuilder stringBuilder = new StringBuilder(contractorData);
+            TransactionTypeEnum transactionType = MapTransactionType(title.ToLower());
+
+            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+            else if (transactionType.Equals(TransactionTypeEnum.Blik))
+            {
+                if (title.ToLower().Contains("blik")) return stringBuilder.ToString();
+                else
+                {
+                    stringBuilder.Append("\n");
+                    string[] splittedTitle = title.Split();
+                    int elementsToSkip = (splittedTitle.Count() > 3 && splittedTitle[3].Contains("+")) ? 4 : 3;
+                    splittedTitle = splittedTitle.Skip(elementsToSkip).ToArray();
+                    return splittedTitle.Aggregate(stringBuilder, (prev, current) => prev.Append(current)).ToString();
+
+                }
+            }
+            else return stringBuilder.Append("\n").Append(title).ToString();
+
+        }
     }
 }

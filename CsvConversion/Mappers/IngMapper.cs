@@ -1,6 +1,8 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper;
 using Models.CsvModels;
+using System.Text;
+using System.Runtime.Versioning;
 
 namespace CsvConversion.Mappers
 {
@@ -18,7 +20,7 @@ namespace CsvConversion.Mappers
         {
             Map(transaction => transaction.Currency).Convert(args => MapCurrency(args.Row));
             Map(transaction => transaction.Date).Name("Data transakcji");
-            Map(transaction => transaction.Description).Name("Dane kontrahenta");
+            Map(transaction => transaction.Description).Convert(args => MapDescription(args.Row));
             Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
             Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row.GetField<string>("Tytuł")!.ToLower()));
         }
@@ -46,6 +48,33 @@ namespace CsvConversion.Mappers
             }
 
             return 0;
+        }
+
+        protected override string MapDescription(IReaderRow row)
+        {
+            string title = row.GetField<string>("Tytuł")!;
+            string contractorData = row.GetField<string>("Dane kontrahenta")!;
+            StringBuilder stringBuilder = new StringBuilder(contractorData);
+            TransactionTypeEnum transactionType = MapTransactionType(title.ToLower());
+
+            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+            else if (transactionType.Equals(TransactionTypeEnum.Blik))
+            {
+                if (title.ToLower().Contains("blik")) return stringBuilder.ToString();
+                else
+                {
+                    stringBuilder.Append("\n");
+                    string[] splittedTitle = title.Split();
+
+                    int elementsToSkip = (splittedTitle.Count() > 4 && splittedTitle[4].Contains("+")) ? 5 : 0;
+                    splittedTitle = splittedTitle.Skip(elementsToSkip).ToArray();
+
+                    return splittedTitle.Aggregate(stringBuilder, (prev, current) => prev.Append(" ").Append(current)).ToString();
+
+                }
+            }
+            else return stringBuilder.Append("\n").Append(title).ToString();
+           
         }
     }
 }

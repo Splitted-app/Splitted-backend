@@ -47,6 +47,6 @@ namespace CsvConversion.Readers
             else return false;
         }
 
-        public override List<TransactionCsv?> GetTransactions() => base.GetSpecificTransactions<MbankMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
+        public override List<TransactionCsv> GetTransactions() => base.GetSpecificTransactions<MbankMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
     }
 }

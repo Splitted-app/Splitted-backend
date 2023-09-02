@@ -36,7 +36,7 @@ namespace CsvConversion.Readers
 
         protected override bool DetermineEndOfTransactions(CsvReader csvReader) => false;
 
-        public override List<TransactionCsv?> GetTransactions() => base.GetSpecificTransactions<PkoMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
+        public override List<TransactionCsv> GetTransactions() => base.GetSpecificTransactions<PkoMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
      
     }
 }
