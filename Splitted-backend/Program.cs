@@ -1,4 +1,5 @@
 using CsvConversion;
+using CsvConversion.Readers;
 using Splitted_backend.Extensions;
 using Splitted_backend.Models.Entities;
 using System.Text;
@@ -7,8 +8,8 @@ using System.Text;
 //{
 //    public static void Main(string [] args)
 //    {
-//        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\pko1.csv";
-//        BaseCsvReader reader = new PkoCsvReader(path);
+//        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\Ing.csv";
+//        BaseCsvReader reader = new IngCsvReader(path);
 //        var transactions = reader.GetTransactions();
 
 //       Console.WriteLine(transactions[0].Description);

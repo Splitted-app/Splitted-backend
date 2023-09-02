@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CsvConversion
+namespace CsvConversion.Readers
 {
     public class MbankCsvReader : BaseCsvReader
     {
@@ -40,25 +40,13 @@ namespace CsvConversion
             csvReader.ReadHeader();
         }
 
-        public override List<TransactionCsv?> GetTransactions()
+        protected override bool DetermineEndOfTransactions(CsvReader csvReader)
         {
-            List<TransactionCsv?> transactions = new List<TransactionCsv?>();
-            var config = SetConfiguration();
-            using (var reader = new StreamReader(path, Encoding.UTF8))
-            using (var csvReader = new CsvReader(reader, config))
-            {
-                csvReader.Context.RegisterClassMap<MbankMapper>();
-                SetConverterOptions<DateTime>(csvReader, new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
-                SkipToHeaderRecord(csvReader);
-                while (csvReader.Read())
-                {
-                    var field = csvReader.GetField<string>(0);
-                    if (field!.Equals("")) break;
-                    var transaction = csvReader.GetRecord<TransactionCsv?>();
-                    transactions.Add(transaction);
-                }
-            }
-            return transactions;
+            var field = csvReader.GetField<string>(0);
+            if (field!.Equals("")) return true;
+            else return false;
         }
+
+        public override List<TransactionCsv?> GetTransactions() => base.GetSpecificTransactions<MbankMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
     }
 }

@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CsvConversion
+namespace CsvConversion.Readers
 {
     public class PkoCsvReader : BaseCsvReader
     {
@@ -34,23 +34,9 @@ namespace CsvConversion
             csvReader.ReadHeader();
         }
 
-        public override List<TransactionCsv?> GetTransactions()
-        {
-            List<TransactionCsv?> transactions = new List<TransactionCsv?>();
-            var config = SetConfiguration();
-            using (var reader = new StreamReader(path, Encoding.UTF8))
-            using (var csvReader = new CsvReader(reader, config))
-            {
-                csvReader.Context.RegisterClassMap<PkoMapper>();
-                SetConverterOptions<DateTime>(csvReader, new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
-                SkipToHeaderRecord(csvReader);
-                while (csvReader.Read())
-                {
-                    var transaction = csvReader.GetRecord<TransactionCsv?>();
-                    transactions.Add(transaction);
-                }
-            }
-            return transactions;
-        }
+        protected override bool DetermineEndOfTransactions(CsvReader csvReader) => false;
+
+        public override List<TransactionCsv?> GetTransactions() => base.GetSpecificTransactions<PkoMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
+     
     }
 }
