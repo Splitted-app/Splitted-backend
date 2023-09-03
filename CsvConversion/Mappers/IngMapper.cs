@@ -3,6 +3,7 @@ using CsvHelper;
 using Models.CsvModels;
 using System.Text;
 using System.Runtime.Versioning;
+using System.Data;
 
 namespace CsvConversion.Mappers
 {
@@ -54,6 +55,7 @@ namespace CsvConversion.Mappers
         {
             string title = row.GetField<string>("Tytuł")!;
             string contractorData = row.GetField<string>("Dane kontrahenta")!;
+
             StringBuilder stringBuilder = new StringBuilder(contractorData);
             TransactionTypeEnum transactionType = MapTransactionType(title.ToLower());
 
@@ -73,7 +75,9 @@ namespace CsvConversion.Mappers
 
                 }
             }
-            else return stringBuilder.Append("\n").Append(title).ToString();
+            else return stringBuilder.Append("\n")
+                    .Append(title)
+                    .ToString();
            
         }
     }

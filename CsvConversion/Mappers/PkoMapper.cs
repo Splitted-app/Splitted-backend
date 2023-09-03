@@ -24,7 +24,6 @@ namespace CsvConversion.Mappers
 
         protected override string MapDescription(IReaderRow row)
         {
-            return " ";
             string title = row.GetField<string>("Tytuł")!;
             string contractorData = row.GetField<string>("Dane kontrahenta")!;
             StringBuilder stringBuilder = new StringBuilder(contractorData);
