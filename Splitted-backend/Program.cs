@@ -8,8 +8,8 @@ public static class MainClass
 {
     public static void Main(string [] args)
     {
-        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\mbank.csv";
-        BaseCsvReader reader = new MbankCsvReader(path);
+        string path = "C:\\Users\\Mateusz\\Desktop\\Programowanko\\Praca in¿ynierska\\CSvki\\pekao2.csv";
+        BaseCsvReader reader = new PekaoCsvReader(path);
         var transactions = reader.GetTransactions();
         int i = 1;
         foreach (var item in transactions)

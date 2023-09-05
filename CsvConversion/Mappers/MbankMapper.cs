@@ -38,10 +38,8 @@ namespace CsvConversion.Mappers
 
         protected override string MapDescription(IReaderRow row)
         {
-            string description = row.GetField<string>("Opis operacji")!;
-            description = string.Join(" ", description.Split(' ')
+            string description = string.Join(" ", row.GetField<string>("Opis operacji")!.Split(" ")
                 .Where(s => !string.IsNullOrWhiteSpace(s)));
-
             string[] descriptionSplitted = description.Split();
             string[] descriptionSplittedModified = Array.ConvertAll(descriptionSplitted, s => s.ToLower());
 
@@ -60,17 +58,14 @@ namespace CsvConversion.Mappers
                 int[] blikIndexes = Enumerable.Range(0, descriptionSplitted.Count())
                                     .Where(i => descriptionSplittedModified[i].Equals("blik"))
                                     .ToArray();
-                int elementsToSkipLast = descriptionSplitted.Count() - blikIndexes[1];
-                int elementsToSkip = blikIndexes[0] + 2;
 
-                descriptionSplitted = descriptionSplitted.SkipLast(elementsToSkipLast)
-                    .Skip(elementsToSkip)
+                int elementsToSkip = (blikIndexes.Count() > 1) ? descriptionSplitted.Count() - blikIndexes[1] : 0;
+                descriptionSplitted = descriptionSplitted.SkipLast(elementsToSkip)
                     .ToArray();
 
                 return string.Join(" ", descriptionSplitted);
             }
             else return description;
-
         }
     }
 }
