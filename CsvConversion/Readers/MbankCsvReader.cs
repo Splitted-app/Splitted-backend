@@ -43,6 +43,7 @@ namespace CsvConversion.Readers
         protected override bool DetermineEndOfTransactions(CsvReader csvReader)
         {
             var field = csvReader.GetField<string>(0);
+
             if (field!.Equals("")) return true;
             else return false;
         }

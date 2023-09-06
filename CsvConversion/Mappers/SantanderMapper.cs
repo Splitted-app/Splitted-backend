@@ -2,6 +2,7 @@
 using CsvHelper.Configuration;
 using Models.CsvModels;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace CsvConversion.Mappers
 {
@@ -14,7 +15,7 @@ namespace CsvConversion.Mappers
         {
             Map(transaction => transaction.Currency).Convert(args => MapCurrency(args.Row));
             Map(transaction => transaction.Date).Index(1);
-            Map(transaction => transaction.Description).Index(2);
+            Map(transaction => transaction.Description).Convert(args => MapDescription(args.Row));
             Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
             Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row.GetField<string>(2)!.ToLower()));
         }
@@ -26,27 +27,51 @@ namespace CsvConversion.Mappers
 
         protected override string MapDescription(IReaderRow row)
         {
-            string title = row.GetField<string>("Tytuł")!;
-            string contractorData = row.GetField<string>("Dane kontrahenta")!;
-            StringBuilder stringBuilder = new StringBuilder(contractorData);
-            TransactionTypeEnum transactionType = MapTransactionType(title.ToLower());
+            string description = row.GetField<string>(2)!;
+            string address = row.GetField<string>(3)!;  
+            string[] descriptionSplitted = description.Split();
+            string[] descriptionSplittedModified = Array.ConvertAll(descriptionSplitted, s => s.ToLower());
 
-            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+            StringBuilder stringBuilder = new StringBuilder(description);
+            TransactionTypeEnum transactionType = MapTransactionType(description.ToLower());
+
+            if (transactionType.Equals(TransactionTypeEnum.Card))
+            {
+                int currencyIndex = Array.IndexOf(descriptionSplittedModified, currency.ToLower());
+                int elementsToSkip = currencyIndex + 1;
+
+                descriptionSplitted = descriptionSplitted.Skip(elementsToSkip)
+                    .ToArray();
+
+                return string.Join(" ", descriptionSplitted);
+            }
+
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
-                if (title.ToLower().Contains("blik")) return stringBuilder.ToString();
-                else
+                if (description.ToLower().Contains("blik"))
                 {
-                    stringBuilder.Append("\n");
-                    string[] splittedTitle = title.Split();
-                    int elementsToSkip = (splittedTitle.Count() > 3 && splittedTitle[3].Contains("+")) ? 4 : 3;
-                    splittedTitle = splittedTitle.Skip(elementsToSkip).ToArray();
-                    return splittedTitle.Aggregate(stringBuilder, (prev, current) => prev.Append(current)).ToString();
+                    int blikIndex = Array.IndexOf(descriptionSplittedModified, "blik");
+                    int refIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                        .FirstOrDefault(i => Regex.IsMatch(descriptionSplittedModified[i], @"ref:\d+"));
 
+                    int elementsToSkip = blikIndex + 1;
+                    int elementsToSkipLast = descriptionSplitted.Count() - refIndex;
+
+                    descriptionSplitted = descriptionSplitted.Skip(elementsToSkip)
+                        .SkipLast(elementsToSkipLast)
+                        .ToArray();
+
+                    return string.Join(" ", descriptionSplitted);
                 }
-            }
-            else return stringBuilder.Append("\n").Append(title).ToString();
 
+                else return stringBuilder.Append("\n")
+                        .Append(address)
+                        .ToString();
+            }
+
+            else return stringBuilder.Append("\n")
+                    .Append(address)
+                    .ToString();
         }
     }
 }

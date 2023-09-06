@@ -39,6 +39,7 @@ namespace CsvConversion.Mappers
                     .Append(recipientAddress);
 
             if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
                 if (title.ToLower().Contains("przelew"))
@@ -61,6 +62,7 @@ namespace CsvConversion.Mappers
                 }
                 else return stringBuilder.ToString(); 
             }
+
             else return stringBuilder.ToString();
 
         }

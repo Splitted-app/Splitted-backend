@@ -60,9 +60,11 @@ namespace CsvConversion.Mappers
             TransactionTypeEnum transactionType = MapTransactionType(title.ToLower());
 
             if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
                 if (title.ToLower().Contains("blik")) return stringBuilder.ToString();
+
                 else
                 {
                     stringBuilder.Append("\n");
@@ -75,6 +77,7 @@ namespace CsvConversion.Mappers
 
                 }
             }
+
             else return stringBuilder.Append("\n")
                     .Append(title)
                     .ToString();

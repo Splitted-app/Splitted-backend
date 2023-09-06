@@ -53,6 +53,7 @@ namespace CsvConversion.Mappers
 
                 return string.Join(" ", descriptionSplitted);
             }
+
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
                 int[] blikIndexes = Enumerable.Range(0, descriptionSplitted.Count())
@@ -65,6 +66,7 @@ namespace CsvConversion.Mappers
 
                 return string.Join(" ", descriptionSplitted);
             }
+
             else return description;
         }
     }
