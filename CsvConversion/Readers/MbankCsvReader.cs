@@ -43,10 +43,11 @@ namespace CsvConversion.Readers
         protected override bool DetermineEndOfTransactions(CsvReader csvReader)
         {
             var field = csvReader.GetField<string>(0);
+
             if (field!.Equals("")) return true;
             else return false;
         }
 
-        public override List<TransactionCsv?> GetTransactions() => base.GetSpecificTransactions<MbankMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
+        public override List<TransactionCsv> GetTransactions() => base.GetSpecificTransactions<MbankMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
     }
 }

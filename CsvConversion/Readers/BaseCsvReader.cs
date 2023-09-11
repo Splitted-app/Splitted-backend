@@ -31,9 +31,9 @@ namespace CsvConversion.Readers
             csvReader.Context.TypeConverterOptionsCache.AddOptions<T>(options);
         }
 
-        protected List<TransactionCsv?> GetSpecificTransactions<T>(string[] formats) where T : ClassMap
+        protected List<TransactionCsv> GetSpecificTransactions<T>(string[] formats) where T : ClassMap
         {
-            List<TransactionCsv?> transactions = new List<TransactionCsv?>();
+            List<TransactionCsv> transactions = new List<TransactionCsv>();
             CsvConfiguration config = SetConfiguration();
             ConvertToUtf8(path);
 
@@ -46,7 +46,7 @@ namespace CsvConversion.Readers
 
                 while (csvReader.Read() && !DetermineEndOfTransactions(csvReader))
                 {
-                    transactions.Add(csvReader.GetRecord<TransactionCsv?>());
+                    transactions.Add(csvReader.GetRecord<TransactionCsv>()!);
                 }
             }
             return transactions;
@@ -58,6 +58,6 @@ namespace CsvConversion.Readers
 
         protected abstract void SkipToHeaderRecord(CsvReader csvReader);
 
-        public abstract List<TransactionCsv?> GetTransactions();
+        public abstract List<TransactionCsv> GetTransactions();
     }
 }
