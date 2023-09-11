@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CsvConversion.Mappers
@@ -22,29 +23,74 @@ namespace CsvConversion.Mappers
 
         protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota")!.Replace(".", ","));
 
+        private string MapPaymentDescription(string[] descriptionSplitted)
+        {
+            int addressIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                    .FirstOrDefault(i => descriptionSplitted[i].Contains("Adres"), -1);
+            int cityIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                .FirstOrDefault(i => descriptionSplitted[i].Contains("Miasto"), -1);
+            int countryIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                .FirstOrDefault(i => descriptionSplitted[i].Contains("Kraj"), -1);
+
+            int[] finalDescriptionIndexes = new int[] { addressIndex, cityIndex, countryIndex };
+            IEnumerable<string> finalDescriptionSplitted = finalDescriptionIndexes
+                .Select(i => Regex.Replace(descriptionSplitted[i], @".*:", string.Empty));
+
+            return string.Join(string.Empty, finalDescriptionSplitted)
+                .Trim();
+        }
+
+        private string MapTransferDescription(string[] descriptionSplitted)
+        {
+            List<string> finalDescriptionSplitted = new List<string>();
+
+            int recipientNameIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                    .FirstOrDefault(i => descriptionSplitted[i].Contains("Nazwa odbiorcy"));
+            int recipientAddressIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                    .FirstOrDefault(i => descriptionSplitted[i].Contains("Adres odbiorcy"));
+            int titleIndex = Enumerable.Range(0, descriptionSplitted.Count())
+                    .FirstOrDefault(i => descriptionSplitted[i].Contains("Tytuł"));
+
+            finalDescriptionSplitted.Add(descriptionSplitted[recipientNameIndex + 1]);
+            finalDescriptionSplitted.Add(descriptionSplitted[recipientAddressIndex + 1] + "\n");
+            finalDescriptionSplitted.AddRange(descriptionSplitted.Take(new Range(titleIndex + 1, descriptionSplitted.Count())));
+
+            return string.Join(" ", finalDescriptionSplitted)
+                .Trim();
+        }
+
         protected override string MapDescription(IReaderRow row)
         {
             string description = row.GetField<string>("Opis transakcji")!;
+            string[] descriptionSplitted = description.Split("|");
+
             string operationType = row.GetField<string>("Typ transakcji")!;
             TransactionTypeEnum transactionType = MapTransactionType(operationType.ToLower());
 
-            if (transactionType.Equals(TransactionTypeEnum.Card)) return description;
+            if (transactionType.Equals(TransactionTypeEnum.Card))
+                return MapPaymentDescription(descriptionSplitted);
+
+            else if (transactionType.Equals(TransactionTypeEnum.Transfer))
+                return MapTransferDescription(descriptionSplitted);
+
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
-                if (description.ToLower().Contains("blik")) return description;
-                else
-                {
-                    //stringBuilder.Append("\n");
-                    //string[] splittedTitle = title.Split();
-                    //int elementsToSkip = (splittedTitle.Count() > 3 && splittedTitle[3].Contains("+")) ? 4 : 3;
-                    //splittedTitle = splittedTitle.Skip(elementsToSkip).ToArray();
-                    //return splittedTitle.Aggregate(stringBuilder, (prev, current) => prev.Append(current)).ToString();
-                    return description;
+                if (operationType.ToLower().Contains("przelew")) return MapTransferDescription(descriptionSplitted);
+                else return MapPaymentDescription(descriptionSplitted);
+            }
 
+            else
+            {
+                try
+                {
+                    return MapPaymentDescription(descriptionSplitted);
+                }
+                catch
+                {
+                    return Regex.Replace(description.Replace("|", string.Empty), @".*:", string.Empty)
+                        .Trim();   
                 }
             }
-            else return description;
-
         }
     }
 }

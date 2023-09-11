@@ -33,7 +33,7 @@ namespace CsvConversion.Readers
 
         protected List<TransactionCsv> GetSpecificTransactions<T>(string[] formats) where T : ClassMap
         {
-            List<TransactionCsv> transactions = new List<TransactionCsv?>();
+            List<TransactionCsv> transactions = new List<TransactionCsv>();
             CsvConfiguration config = SetConfiguration();
             ConvertToUtf8(path);
 
