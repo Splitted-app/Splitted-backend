@@ -1,4 +1,5 @@
-﻿using CsvHelper;
+﻿using CsvConversion.Extensions;
+using CsvHelper;
 using CsvHelper.Configuration;
 using Models.CsvModels;
 using System;
@@ -28,17 +29,15 @@ namespace CsvConversion.Mappers
         {
             string operationType = row.GetField<string>("Typ operacji")!;
             string title = row.GetField<string>("Tytułem")!;
-            string recipient = string.Join(" ", row.GetField<string>("Nadawca / Odbiorca")!.Split(" ")
-                .Where(s => !string.IsNullOrWhiteSpace(s)));
+            string recipient = row.GetField<string>("Nadawca / Odbiorca")!;
             string recipientAddress = row.GetField<string>("Adres nadawcy / odbiorcy")!;
 
             StringBuilder stringBuilder = new StringBuilder(recipient);
             TransactionTypeEnum transactionType = MapTransactionType(operationType.ToLower());
 
-            stringBuilder.Append(" ")
-                    .Append(recipientAddress);
+            stringBuilder.Append(" ").Append(recipientAddress);
 
-            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString().Beutify();
 
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
@@ -57,13 +56,17 @@ namespace CsvConversion.Mappers
                     titleSplitted = titleSplitted.SkipLast(elementsToSkip)
                         .ToArray();
 
-                    return stringBuilder.Append(string.Join(" ", titleSplitted)).ToString();
+                    return stringBuilder.Append(string.Join(" ", titleSplitted))
+                        .ToString()
+                        .Beutify();
 
                 }
-                else return stringBuilder.ToString(); 
+                else return stringBuilder.ToString()
+                        .Beutify();
             }
 
-            else return stringBuilder.ToString();
+            else return stringBuilder.ToString()
+                    .Beutify();
 
         }
     }

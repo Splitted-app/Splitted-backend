@@ -4,6 +4,7 @@ using Models.CsvModels;
 using System.Text;
 using System.Runtime.Versioning;
 using System.Data;
+using CsvConversion.Extensions;
 
 namespace CsvConversion.Mappers
 {
@@ -59,11 +60,11 @@ namespace CsvConversion.Mappers
             StringBuilder stringBuilder = new StringBuilder(contractorData);
             TransactionTypeEnum transactionType = MapTransactionType(title.ToLower());
 
-            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString();
+            if (transactionType.Equals(TransactionTypeEnum.Card)) return stringBuilder.ToString().Beutify();
 
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
-                if (title.ToLower().Contains("blik")) return stringBuilder.ToString();
+                if (title.ToLower().Contains("blik")) return stringBuilder.ToString().Beutify();
 
                 else
                 {
@@ -73,15 +74,16 @@ namespace CsvConversion.Mappers
                     int elementsToSkip = (splittedTitle.Count() > 4 && splittedTitle[4].Contains("+")) ? 5 : 0;
                     splittedTitle = splittedTitle.Skip(elementsToSkip).ToArray();
 
-                    return splittedTitle.Aggregate(stringBuilder, (prev, current) => prev.Append(" ").Append(current)).ToString();
-
+                    return splittedTitle.Aggregate(stringBuilder, (prev, current) => prev.Append(" ").Append(current))
+                        .ToString()
+                        .Beutify();
                 }
             }
 
             else return stringBuilder.Append("\n")
                     .Append(title)
-                    .ToString();
-           
+                    .ToString()
+                    .Beutify();
         }
     }
 }

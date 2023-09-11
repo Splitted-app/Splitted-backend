@@ -1,4 +1,5 @@
-﻿using CsvHelper;
+﻿using CsvConversion.Extensions;
+using CsvHelper;
 using CsvHelper.Configuration;
 using Models.CsvModels;
 using System.Text;
@@ -43,7 +44,8 @@ namespace CsvConversion.Mappers
                 descriptionSplitted = descriptionSplitted.Skip(elementsToSkip)
                     .ToArray();
 
-                return string.Join(" ", descriptionSplitted);
+                return string.Join(" ", descriptionSplitted)
+                    .Beutify();
             }
 
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
@@ -61,17 +63,20 @@ namespace CsvConversion.Mappers
                         .SkipLast(elementsToSkipLast)
                         .ToArray();
 
-                    return string.Join(" ", descriptionSplitted);
+                    return string.Join(" ", descriptionSplitted)
+                        .Beutify();
                 }
 
                 else return stringBuilder.Append("\n")
                         .Append(address)
-                        .ToString();
+                        .ToString()
+                        .Beutify();
             }
 
             else return stringBuilder.Append("\n")
                     .Append(address)
-                    .ToString();
+                    .ToString()
+                    .Beutify();
         }
     }
 }

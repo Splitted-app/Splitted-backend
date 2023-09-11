@@ -1,4 +1,5 @@
-﻿using CsvHelper;
+﻿using CsvConversion.Extensions;
+using CsvHelper;
 using CsvHelper.Configuration;
 using Models.CsvModels;
 using System;
@@ -37,7 +38,7 @@ namespace CsvConversion.Mappers
                 .Select(i => Regex.Replace(descriptionSplitted[i], @".*:", string.Empty));
 
             return string.Join(string.Empty, finalDescriptionSplitted)
-                .Trim();
+                .Beutify();
         }
 
         private string MapTransferDescription(string[] descriptionSplitted)
@@ -56,7 +57,7 @@ namespace CsvConversion.Mappers
             finalDescriptionSplitted.AddRange(descriptionSplitted.Take(new Range(titleIndex + 1, descriptionSplitted.Count())));
 
             return string.Join(" ", finalDescriptionSplitted)
-                .Trim();
+                .Beutify();
         }
 
         protected override string MapDescription(IReaderRow row)
@@ -88,7 +89,7 @@ namespace CsvConversion.Mappers
                 catch
                 {
                     return Regex.Replace(description.Replace("|", string.Empty), @".*:", string.Empty)
-                        .Trim();   
+                        .Beutify();   
                 }
             }
         }

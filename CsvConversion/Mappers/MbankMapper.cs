@@ -1,4 +1,5 @@
-﻿using CsvHelper;
+﻿using CsvConversion.Extensions;
+using CsvHelper;
 using CsvHelper.Configuration;
 using Models.CsvModels;
 using System;
@@ -38,8 +39,7 @@ namespace CsvConversion.Mappers
 
         protected override string MapDescription(IReaderRow row)
         {
-            string description = string.Join(" ", row.GetField<string>("Opis operacji")!.Split(" ")
-                .Where(s => !string.IsNullOrWhiteSpace(s)));
+            string description = row.GetField<string>("Opis operacji")!;
             string[] descriptionSplitted = description.Split();
             string[] descriptionSplittedModified = Array.ConvertAll(descriptionSplitted, s => s.ToLower());
 
@@ -51,7 +51,8 @@ namespace CsvConversion.Mappers
                 descriptionSplitted = descriptionSplitted.SkipLast(elementsToSkip)
                     .ToArray();
 
-                return string.Join(" ", descriptionSplitted);
+                return string.Join(" ", descriptionSplitted)
+                    .Beutify();
             }
 
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
@@ -64,10 +65,11 @@ namespace CsvConversion.Mappers
                 descriptionSplitted = descriptionSplitted.SkipLast(elementsToSkip)
                     .ToArray();
 
-                return string.Join(" ", descriptionSplitted);
+                return string.Join(" ", descriptionSplitted)
+                    .Beutify();
             }
 
-            else return description;
+            else return description.Beutify();
         }
     }
 }
