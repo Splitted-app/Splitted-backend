@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Models.DTOs.Incoming
 {
-    public class UserRegisterDTO
+    public class UserLoginDTO
     {
         [EmailAddress]
         [Required]
@@ -15,19 +15,5 @@ namespace Models.DTOs.Incoming
 
         [Required]
         public string Password { get; set; }
-
-        [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public string Surname { get; set; }
-
-        [Required]
-        public string Nickname { get; set; }
-
-        [Required]
-        public string Currency { get; set; }
-
-        public string? Bank { get; set; }
     }
 }

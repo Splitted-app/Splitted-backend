@@ -10,13 +10,15 @@ namespace Models.DTOs.Outgoing
     {
         public Guid Id { get; set; }
 
-        public string Mail { get; set; }
+        public string Email { get; set; }
 
         public string Name { get; set; }
 
         public string Surname { get; set; }
 
         public string Nickname { get; set; }
+
+        public string Currency { get; set; }
 
         public string? Bank { get; set; }
     }

@@ -1,7 +1,7 @@
 ﻿using CsvConversion.Extensions;
 using CsvHelper;
 using CsvHelper.Configuration;
-using Models.CsvModels;
+using Models.Enums;
 using System.Text;
 using System.Text.RegularExpressions;
 

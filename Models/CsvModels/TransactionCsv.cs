@@ -1,4 +1,5 @@
 ﻿using CsvHelper.Configuration.Attributes;
+using Models.Enums;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -16,7 +17,8 @@ namespace Models.CsvModels
 
         public TransactionTypeEnum TransactionType { get; set; }
 
-        public string? Category { get; set; }
+        public string? BankCategory { get; set; }
 
+        public string? AutoCategory { get; set; }
     }
 }

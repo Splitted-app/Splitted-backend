@@ -1,7 +1,7 @@
 ﻿using CsvConversion.Extensions;
 using CsvHelper;
 using CsvHelper.Configuration;
-using Models.CsvModels;
+using Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ namespace CsvConversion.Mappers
             Map(transaction => transaction.Description).Convert(args => MapDescription(args.Row));
             Map(transaction => transaction.Amount).Convert(args => MapAmount(args.Row));
             Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row.GetField<string>("Typ operacji")!.ToLower()));
-            Map(transaction => transaction.Category).Name("Kategoria");
+            Map(transaction => transaction.BankCategory).Name("Kategoria");
         }
 
 
