@@ -23,7 +23,7 @@ namespace Splitted_backend.Controllers
         }
 
 
-        [HttpPost]
+        [HttpPost("login")]
         public IActionResult LoginUser()
         {
             string token = authenticationManager.GenerateToken();

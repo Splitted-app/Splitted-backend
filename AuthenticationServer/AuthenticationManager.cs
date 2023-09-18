@@ -17,10 +17,16 @@ namespace AuthenticationServer
     {
         private IConfiguration configuration { get; set; }
 
+        private string issuer { get; set; }
+
+        private List<string> audience { get; set; }
+
 
         public AuthenticationManager(IConfiguration configuration)
         {
             this.configuration = configuration;
+            issuer = configuration["Issuer"]!;
+            audience = configuration.GetSection("Audience").Get<List<string>>();
         }
 
         public string GenerateToken()
@@ -31,9 +37,13 @@ namespace AuthenticationServer
 
             SecurityTokenDescriptor jwtTokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim(JwtRegisteredClaimNames.Sub, "test")}),
                 Expires = DateTime.Now.AddHours(1),
-                SigningCredentials = signingCredentials
+                SigningCredentials = signingCredentials,
+                Issuer = issuer,
+                Claims = new Dictionary<string, object>
+                {
+                    {JwtRegisteredClaimNames.Aud,  audience}
+                }
             };
 
             SecurityToken jwtToken = jwtSecurityTokenHandler.CreateToken(jwtTokenDescriptor);
@@ -54,8 +64,8 @@ namespace AuthenticationServer
                 ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = "sadf", // from appsettings
-                ValidAudience = "sdf", // from appsettings
+                ValidIssuer = issuer,
+                ValidAudiences = audience,
                 IssuerSigningKey = new RsaSecurityKey(PemManager.LoadKey<RsaKeyParameters>(configuration["Keys:PublicKey"]!))
             };
         }
