@@ -1,12 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Splitted_backend.Models.Entities
+namespace Models.DTOs.Incoming
 {
-    [Table("User")]
-    public class User
+    public class UserRegisterDTO
     {
-        public Guid Id { get; set; }
-
+        [EmailAddress]
         public string Mail { get; set; }
 
         public string Password { get; set; }
