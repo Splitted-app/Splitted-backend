@@ -1,6 +1,7 @@
 ﻿using AuthenticationServer;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.Data_holders;
 using Models.DTOs.Incoming;
 using Models.DTOs.Outgoing;
@@ -8,6 +9,7 @@ using Models.Enums;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace Splitted_backend.Controllers
 {
@@ -109,5 +111,33 @@ namespace Splitted_backend.Controllers
             }
         }
 
+        [HttpGet("email-check")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Determined if user exists", typeof(UserEmailCheckDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> EmailCheck([FromQuery, BindRequired] string email)
+        {
+            try
+            {
+                if (email is null)
+                    return BadRequest("Email is empty.");
+
+                if (!new EmailAddressAttribute().IsValid(email))
+                    return BadRequest("Email is invalid.");
+
+                User? userFound = await repositoryWrapper.User.GetEntityOrDefaultByCondition(u => u.Email.Equals(email));
+
+                UserEmailCheckDTO userEmailCheckDTO = new UserEmailCheckDTO
+                {
+                    UserExists = (userFound is null) ? false : true
+                };
+                return Ok(userEmailCheckDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside LoginUser method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
     }
 }
