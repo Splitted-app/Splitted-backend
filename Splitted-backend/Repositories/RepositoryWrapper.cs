@@ -16,7 +16,8 @@ namespace Splitted_backend.Repositories
         {
             get
             {
-                if (user is null) user = new UserRepository(splittedDbContext);
+                if (user is null) 
+                    user = new UserRepository(splittedDbContext);
                 return user;
             }
         }

@@ -1,10 +1,10 @@
 ﻿using CsvHelper.Configuration;
 using CsvHelper;
-using Models.CsvModels;
 using System.Text;
 using System.Runtime.Versioning;
 using System.Data;
 using CsvConversion.Extensions;
+using Models.Enums;
 
 namespace CsvConversion.Mappers
 {

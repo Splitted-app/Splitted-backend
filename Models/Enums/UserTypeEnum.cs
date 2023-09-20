@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.CsvModels
+namespace Models.Enums
 {
-    public enum TransactionTypeEnum
+    public enum UserTypeEnum
     {
-        Blik,
-        Card,
-        Transfer,
-        Other
+        Basic,
+        Admin
     }
 }

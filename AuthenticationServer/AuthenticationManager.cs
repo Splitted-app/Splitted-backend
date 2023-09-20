@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using Models.Data_holders;
 using Org.BouncyCastle.Crypto.Parameters;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ namespace AuthenticationServer
             audience = configuration.GetSection("Audience").Get<List<string>>();
         }
 
-        public string GenerateToken()
+        public string GenerateToken(TokenClaimsData tokenClaimsData)
         { 
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             RsaSecurityKey rsaSecurityKey = new RsaSecurityKey(PemManager.LoadKey<RsaPrivateCrtKeyParameters>(configuration["Keys:PrivateKey"]!));
@@ -39,10 +40,13 @@ namespace AuthenticationServer
             {
                 Expires = DateTime.Now.AddHours(1),
                 SigningCredentials = signingCredentials,
-                Issuer = issuer,
                 Claims = new Dictionary<string, object>
                 {
-                    {JwtRegisteredClaimNames.Aud,  audience}
+                    {JwtRegisteredClaimNames.Aud, audience},
+                    {JwtRegisteredClaimNames.Iss, issuer},
+                    {"user_id", tokenClaimsData.UserId.ToString()},
+                    {"user_nickname", tokenClaimsData.Nickname},
+                    {"user_type", tokenClaimsData.UserType.ToString()}
                 }
             };
 

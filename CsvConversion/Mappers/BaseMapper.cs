@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using CsvHelper.Configuration;
 using Models.CsvModels;
+using Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

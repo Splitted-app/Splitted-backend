@@ -12,6 +12,7 @@ namespace Splitted_backend.Extensions
     {
         public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddAutoMapper(typeof(Program));
             services.AddDbContext<SplittedDbContext>(opts => opts.UseSqlServer(configuration["ConnectionStrings:SplittedDB"]));
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         }
