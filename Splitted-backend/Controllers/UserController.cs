@@ -56,7 +56,7 @@ namespace Splitted_backend.Controllers
 
                 User user = mapper.Map<User>(userRegisterDTO);
                 repositoryWrapper.User.Create(user);
-                user.UserType = UserTypeEnum.Basic;
+                //user.UserType = UserTypeEnum.Basic;
 
                 await repositoryWrapper.SaveChanges();
 
@@ -90,19 +90,19 @@ namespace Splitted_backend.Controllers
                 if (user is null) 
                     return NotFound($"User with given mail: {userLoginDTO.Email} doesn't exist.");
 
-                if (!user.Password.Equals(userLoginDTO.Password)) 
-                    return Unauthorized($"Invalid password for a user with mail: {userLoginDTO.Email}");
+                //if (!user.Password.Equals(userLoginDTO.Password)) 
+                //    return Unauthorized($"Invalid password for a user with mail: {userLoginDTO.Email}");
 
-                UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
-                {
-                    Token = authenticationManager.GenerateToken(new TokenClaimsData
-                    {
-                        UserId = user.Id,
-                        UserType = user.UserType,
-                        Nickname = user.Nickname
-                    })
-                };
-                return Ok(userLoggedInDTO);
+                //UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
+                //{
+                //    Token = authenticationManager.GenerateToken(new TokenClaimsData
+                //    {
+                //        UserId = user.Id,
+                //        UserType = user.UserType,
+                //        Nickname = user.Nickname
+                //    })
+                //};
+                return Ok();
             }
             catch (Exception exception)
             {

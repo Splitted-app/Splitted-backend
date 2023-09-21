@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Splitted_backend.DbContexts;
 
@@ -11,9 +12,11 @@ using Splitted_backend.DbContexts;
 namespace Splitted_backend.Migrations
 {
     [DbContext(typeof(SplittedDbContext))]
-    partial class SplittedDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230921233530_Added Microsoft.Identity entities")]
+    partial class AddedMicrosoftIdentityentities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -168,8 +171,8 @@ namespace Splitted_backend.Migrations
                     b.Property<string>("Bank")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("BankBalance")
-                        .HasColumnType("money");
+                    b.Property<decimal?>("BankBalance")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()

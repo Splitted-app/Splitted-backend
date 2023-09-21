@@ -5,6 +5,9 @@ using Splitted_backend.Interfaces;
 using Splitted_backend.Repositories;
 using System.Security.Cryptography;
 using AuthenticationServer;
+using Splitted_backend.DbContexts;
+using Splitted_backend.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 
 namespace Splitted_backend.Extensions
 {
@@ -13,7 +16,6 @@ namespace Splitted_backend.Extensions
         public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAutoMapper(typeof(Program));
-            services.AddDbContext<SplittedDbContext>(opts => opts.UseSqlServer(configuration["ConnectionStrings:SplittedDB"]));
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
             services.AddCors(options =>
             {
@@ -22,6 +24,14 @@ namespace Splitted_backend.Extensions
                     .WithOrigins(configuration.GetSection("Allowed origins").Get<string[]>())
                     .AllowAnyMethod());
             });
+        }
+
+        public static void ConfigureDbContexts(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddDbContext<SplittedDbContext>(opts => opts.UseSqlServer(configuration["ConnectionStrings:SplittedDB"]));
+            services.AddIdentity<User, IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<SplittedDbContext>()
+                .AddDefaultTokenProviders();
         }
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)

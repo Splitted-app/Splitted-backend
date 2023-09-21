@@ -17,7 +17,7 @@ namespace Models.DTOs.Incoming
         public string Password { get; set; }
 
         [Required]
-        public string Nickname { get; set; }
+        public string Username { get; set; }
 
         [Required]
         public string Currency { get; set; }
