@@ -12,15 +12,15 @@ namespace Splitted_backend.Models.Entities
 
         public string Password { get; set; }
 
-        public string Name { get; set; }
-
-        public string Surname { get; set; }
-
         public string Nickname { get; set; }
 
         public string Currency { get; set; }
 
         public string? Bank { get; set; }
+
+        public decimal? BankBalance { get; set; }
+
+        public string? AvatarImage { get; set; }
 
         public UserTypeEnum UserType { get; set; }
     }

@@ -17,17 +17,15 @@ namespace Models.DTOs.Incoming
         public string Password { get; set; }
 
         [Required]
-        public string Name { get; set; }
-
-        [Required]
-        public string Surname { get; set; }
-
-        [Required]
         public string Nickname { get; set; }
 
         [Required]
         public string Currency { get; set; }
 
+        public decimal? BankBalance { get; set; }
+
         public string? Bank { get; set; }
+
+        public string? AvatarImage { get; set; }
     }
 }
