@@ -29,7 +29,10 @@ namespace Splitted_backend.Extensions
         public static void ConfigureDbContexts(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<SplittedDbContext>(opts => opts.UseSqlServer(configuration["ConnectionStrings:SplittedDB"]));
-            services.AddIdentity<User, IdentityRole<Guid>>()
+            services.AddIdentity<User, IdentityRole<Guid>>(options =>
+            {
+                options.Password.RequiredLength = 7;
+            })
                 .AddEntityFrameworkStores<SplittedDbContext>()
                 .AddDefaultTokenProviders();
         }

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Models.Enums
 {
-    public enum UserTypeEnum
+    public enum UserRoleEnum
     {
-        Basic,
+        Member,
         Admin
     }
 }

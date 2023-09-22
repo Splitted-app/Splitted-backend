@@ -13,6 +13,6 @@ namespace Models.Data_holders
 
         public string Nickname { get; set; }
 
-        public UserTypeEnum UserType { get; set; }
+        public UserRoleEnum UserType { get; set; }
     }
 }
