@@ -3,7 +3,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Models.Data_holders;
 using Models.DTOs.Incoming;
 using Models.DTOs.Outgoing;
 using Models.Enums;
@@ -95,29 +94,24 @@ namespace Splitted_backend.Controllers
         {
             try
             {
-                //if (userLoginDTO is null) 
-                //    return BadRequest("UserLoginDTO object is null.");
+                if (userLoginDTO is null) 
+                    return BadRequest("UserLoginDTO object is null.");
 
-                //if (!ModelState.IsValid) 
-                //    return BadRequest("Invalid model object.");
+                if (!ModelState.IsValid) 
+                    return BadRequest("Invalid model object.");
 
-                //User? user = await repositoryWrapper.User.GetEntityOrDefaultByCondition(u => u.Email.Equals(userLoginDTO.Email));
-                //if (user is null) 
-                //    return NotFound($"User with given mail: {userLoginDTO.Email} doesn't exist.");
+                User? user = await userManager.FindByEmailAsync(userLoginDTO.Email);
+                if (user is null) 
+                    return NotFound($"User with given mail: {userLoginDTO.Email} doesn't exist.");
 
-                ////if (!user.Password.Equals(userLoginDTO.Password)) 
-                ////    return Unauthorized($"Invalid password for a user with mail: {userLoginDTO.Email}");
+                if (!await userManager.CheckPasswordAsync(user, userLoginDTO.Password)) 
+                    return Unauthorized($"Invalid password for a user with mail: {userLoginDTO.Email}");
 
-                ////UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
-                ////{
-                ////    Token = authenticationManager.GenerateToken(new TokenClaimsData
-                ////    {
-                ////        UserId = user.Id,
-                ////        UserType = user.UserType,
-                ////        Nickname = user.Nickname
-                ////    })
-                ////};
-                return Ok();
+                UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
+                {
+                    Token = authenticationManager.GenerateToken(new List<Claim>(await userManager.GetClaimsAsync(user)))
+                };
+                return Ok(userLoggedInDTO);
             }
             catch (Exception exception)
             {
