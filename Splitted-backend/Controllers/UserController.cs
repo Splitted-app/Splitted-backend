@@ -128,19 +128,19 @@ namespace Splitted_backend.Controllers
         {
             try
             {
-                //if (email is null)
-                //    return BadRequest("Email is empty.");
+                if (email is null)
+                    return BadRequest("Email is empty.");
 
-                //if (!new EmailAddressAttribute().IsValid(email))
-                //    return BadRequest("Email is invalid.");
+                if (!new EmailAddressAttribute().IsValid(email))
+                    return BadRequest("Email is invalid.");
 
-                //User? userFound = await repositoryWrapper.User.GetEntityOrDefaultByCondition(u => u.Email.Equals(email));
+                User? userFound = await userManager.FindByEmailAsync(email);
 
-                //UserEmailCheckDTO userEmailCheckDTO = new UserEmailCheckDTO
-                //{
-                //    UserExists = (userFound is null) ? false : true
-                //};
-                return Ok();
+                UserEmailCheckDTO userEmailCheckDTO = new UserEmailCheckDTO
+                {
+                    UserExists = (userFound is null) ? false : true
+                };
+                return Ok(userEmailCheckDTO);
             }
             catch (Exception exception)
             {
