@@ -15,6 +15,13 @@ namespace Splitted_backend.Extensions
             services.AddAutoMapper(typeof(Program));
             services.AddDbContext<SplittedDbContext>(opts => opts.UseSqlServer(configuration["ConnectionStrings:SplittedDB"]));
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("Allowed origins",
+                    builder => builder
+                    .WithOrigins(configuration.GetSection("Allowed origins").Get<string[]>())
+                    .AllowAnyMethod());
+            });
         }
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)

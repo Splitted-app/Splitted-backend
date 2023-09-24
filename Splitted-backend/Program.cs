@@ -31,6 +31,7 @@ builder.Services.AddSwaggerGen(config => config.EnableAnnotations());
 
 var app = builder.Build();
 
+app.UseCors("Allowed origins");
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
