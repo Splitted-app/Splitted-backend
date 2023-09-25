@@ -36,6 +36,9 @@ namespace Splitted_backend.Extensions
             })
                 .AddEntityFrameworkStores<SplittedDbContext>()
                 .AddDefaultTokenProviders();
+            
+            SplittedDbContext splittedDbContext = services.BuildServiceProvider().GetRequiredService<SplittedDbContext>();
+            splittedDbContext.Database.Migrate();
         }
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
