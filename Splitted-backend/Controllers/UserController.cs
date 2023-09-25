@@ -47,7 +47,7 @@ namespace Splitted_backend.Controllers
         [HttpPost("register")]
         [SwaggerResponse(StatusCodes.Status201Created, "Successfully registered", typeof(UserCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
-        [SwaggerResponse(StatusCodes.Status409Conflict, "Mail already taken")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Mail or username already taken")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDTO userRegisterDTO)
         {
@@ -62,6 +62,10 @@ namespace Splitted_backend.Controllers
                 User? userFound = await userManager.FindByEmailAsync(userRegisterDTO.Email);
                 if (userFound is not null)
                     return Conflict($"User with mail {userRegisterDTO.Email} already exists.");
+
+                userFound = await userManager.FindByNameAsync(userRegisterDTO.Username);
+                if (userFound is not null)
+                    return Conflict($"User with username {userRegisterDTO.Username} already exists.");
 
                 User user = mapper.Map<User>(userRegisterDTO);
                 IdentityResult result = await userManager.CreateAsync(user, userRegisterDTO.Password);
