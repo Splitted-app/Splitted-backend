@@ -2,8 +2,6 @@
 {
     public interface IRepositoryWrapper
     {
-        IUserRepository User { get; }
-
         Task SaveChanges();
     }
 }

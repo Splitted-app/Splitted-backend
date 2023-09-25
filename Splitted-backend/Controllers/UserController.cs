@@ -1,15 +1,17 @@
 ﻿using AuthenticationServer;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Models.Data_holders;
 using Models.DTOs.Incoming;
 using Models.DTOs.Outgoing;
 using Models.Enums;
+using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 namespace Splitted_backend.Controllers
 {
@@ -23,14 +25,21 @@ namespace Splitted_backend.Controllers
 
         private IRepositoryWrapper repositoryWrapper { get; }
 
+        private UserManager<User> userManager { get; }
+
+        private RoleManager<IdentityRole<Guid>> roleManager { get; }
+
         private AuthenticationManager authenticationManager { get; }
 
 
-        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, IConfiguration configuration)
+        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, UserManager<User> userManager,  
+            RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
         {
             this.logger = logger;
             this.mapper = mapper;
             this.repositoryWrapper = repositoryWrapper;
+            this.userManager = userManager;
+            this.roleManager = roleManager;
             this.authenticationManager = new AuthenticationManager(configuration);
         }
 
@@ -38,7 +47,7 @@ namespace Splitted_backend.Controllers
         [HttpPost("register")]
         [SwaggerResponse(StatusCodes.Status201Created, "Successfully registered", typeof(UserCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
-        [SwaggerResponse(StatusCodes.Status409Conflict, "Mail already taken")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Mail or username already taken")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> RegisterUser([FromBody] UserRegisterDTO userRegisterDTO)
         {
@@ -50,14 +59,23 @@ namespace Splitted_backend.Controllers
                 if (!ModelState.IsValid) 
                     return BadRequest("Invalid model object.");
 
-                User? userFound = await repositoryWrapper.User.GetEntityOrDefaultByCondition(u => u.Email.Equals(userRegisterDTO.Email));
+                User? userFound = await userManager.FindByEmailAsync(userRegisterDTO.Email);
                 if (userFound is not null)
                     return Conflict($"User with mail {userRegisterDTO.Email} already exists.");
 
-                User user = mapper.Map<User>(userRegisterDTO);
-                repositoryWrapper.User.Create(user);
-                user.UserType = UserTypeEnum.Basic;
+                userFound = await userManager.FindByNameAsync(userRegisterDTO.Username);
+                if (userFound is not null)
+                    return Conflict($"User with username {userRegisterDTO.Username} already exists.");
 
+                User user = mapper.Map<User>(userRegisterDTO);
+                IdentityResult result = await userManager.CreateAsync(user, userRegisterDTO.Password);
+
+                if (!result.Succeeded)
+                    return BadRequest(string.Join("\n", result.Errors.Select(e => e.Description)));
+
+                await userManager.AddUserRoles(roleManager, new List<UserRoleEnum> { UserRoleEnum.Member }, user);
+                await userManager.AddUserClaims(user);
+                
                 await repositoryWrapper.SaveChanges();
 
                 UserCreatedDTO userCreatedDTO = mapper.Map<UserCreatedDTO>(user);
@@ -86,21 +104,16 @@ namespace Splitted_backend.Controllers
                 if (!ModelState.IsValid) 
                     return BadRequest("Invalid model object.");
 
-                User? user = await repositoryWrapper.User.GetEntityOrDefaultByCondition(u => u.Email.Equals(userLoginDTO.Email));
+                User? user = await userManager.FindByEmailAsync(userLoginDTO.Email);
                 if (user is null) 
                     return NotFound($"User with given mail: {userLoginDTO.Email} doesn't exist.");
 
-                if (!user.Password.Equals(userLoginDTO.Password)) 
+                if (!await userManager.CheckPasswordAsync(user, userLoginDTO.Password)) 
                     return Unauthorized($"Invalid password for a user with mail: {userLoginDTO.Email}");
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
-                    Token = authenticationManager.GenerateToken(new TokenClaimsData
-                    {
-                        UserId = user.Id,
-                        UserType = user.UserType,
-                        Nickname = user.Nickname
-                    })
+                    Token = authenticationManager.GenerateToken(new List<Claim>(await userManager.GetClaimsAsync(user)))
                 };
                 return Ok(userLoggedInDTO);
             }
@@ -125,7 +138,7 @@ namespace Splitted_backend.Controllers
                 if (!new EmailAddressAttribute().IsValid(email))
                     return BadRequest("Email is invalid.");
 
-                User? userFound = await repositoryWrapper.User.GetEntityOrDefaultByCondition(u => u.Email.Equals(email));
+                User? userFound = await userManager.FindByEmailAsync(email);
 
                 UserEmailCheckDTO userEmailCheckDTO = new UserEmailCheckDTO
                 {

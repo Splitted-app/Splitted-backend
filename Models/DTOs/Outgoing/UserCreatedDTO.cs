@@ -12,12 +12,12 @@ namespace Models.DTOs.Outgoing
 
         public string Email { get; set; }
 
-        public string Nickname { get; set; }
+        public string Username { get; set; }
 
         public string Currency { get; set; }
 
         public string? Bank { get; set; }
 
-        public decimal? BankBalance { get; set; }
+        public decimal BankBalance { get; set; }
     }
 }
