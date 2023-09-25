@@ -18,8 +18,8 @@ namespace Splitted_backend.Models.Entities
         public string? AvatarImage { get; set; }
 
 
-        public List<Transaction> Transactions { get; set; }
+        public List<Transaction> Transactions { get; set; } = new();
 
-        public List<UserTransaction> UserTransactions { get; set; }
+        public List<UserTransaction> UserTransactions { get; set; } = new();
     }
 }

@@ -16,8 +16,8 @@ namespace Models.Entities
         public Guid TransactionId { get; set; }
 
 
-        public User User { get; set; }
+        public User User { get; set; } = new();
 
-        public Transaction Transaction { get; set; }
+        public Transaction Transaction { get; set; } = new();
     }
 }
