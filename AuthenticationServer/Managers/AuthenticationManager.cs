@@ -11,7 +11,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthenticationServer
+namespace AuthenticationServer.Managers
 {
     public class AuthenticationManager
     {
@@ -30,12 +30,12 @@ namespace AuthenticationServer
         }
 
         public string GenerateToken(List<Claim> userClaims)
-        { 
+        {
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             RsaSecurityKey rsaSecurityKey = new RsaSecurityKey(PemManager.LoadKey<RsaPrivateCrtKeyParameters>(configuration["Keys:PrivateKey"]!));
             SigningCredentials signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
 
-            Dictionary<string, object> claimsDictionary = userClaims.ToDictionary(uc => uc.Type, uc => (object) uc.Value);
+            Dictionary<string, object> claimsDictionary = userClaims.ToDictionary(uc => uc.Type, uc => (object)uc.Value);
             claimsDictionary.Add(JwtRegisteredClaimNames.Aud, audience);
             claimsDictionary.Add(JwtRegisteredClaimNames.Iss, issuer);
 

@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Repositories;
 using System.Security.Cryptography;
-using AuthenticationServer;
 using Splitted_backend.DbContexts;
 using Splitted_backend.Models.Entities;
 using Microsoft.AspNetCore.Identity;
+using AuthenticationServer.Managers;
 
 namespace Splitted_backend.Extensions
 {

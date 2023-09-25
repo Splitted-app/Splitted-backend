@@ -9,16 +9,20 @@ namespace Splitted_backend.Repositories
     {
         private SplittedDbContext splittedDbContext { get; set; }
 
+
         protected RepositoryBase(SplittedDbContext splittedDbContext)
         {
             this.splittedDbContext = splittedDbContext;
         }
 
+
         public void Create(T entity) => splittedDbContext.Set<T>().Add(entity);
-   
+
         public void Delete(T entity) => splittedDbContext.Set<T>().Remove(entity);
 
         public void Update(T entity) => splittedDbContext.Set<T>().Update(entity);
+
+        public async Task CreateMultiple(IEnumerable<T> entities) => await splittedDbContext.Set<T>().AddRangeAsync(entities);
 
         public async Task<List<T>> GetAll() => await splittedDbContext.Set<T>().ToListAsync();
 

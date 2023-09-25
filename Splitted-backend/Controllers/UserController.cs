@@ -1,4 +1,4 @@
-﻿using AuthenticationServer;
+﻿using AuthenticationServer.Managers;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
