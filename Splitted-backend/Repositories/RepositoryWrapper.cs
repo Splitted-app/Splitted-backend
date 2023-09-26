@@ -7,9 +7,22 @@ namespace Splitted_backend.Repositories
     {
         private SplittedDbContext splittedDbContext;
 
+        private ITransactionRepository transactions;
+
+
         public RepositoryWrapper(SplittedDbContext splittedDbContext)
         {
             this.splittedDbContext = splittedDbContext;
+        }
+
+
+        public ITransactionRepository Transactions
+        {
+            get
+            {
+                transactions ??= new TransactionRepository(splittedDbContext);
+                return transactions;
+            }
         }
         
         public async Task SaveChanges() => await splittedDbContext.SaveChangesAsync();

@@ -1,4 +1,4 @@
-﻿using AuthenticationServer;
+﻿using AuthenticationServer.Managers;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +73,7 @@ namespace Splitted_backend.Controllers
                 if (!result.Succeeded)
                     return BadRequest(string.Join("\n", result.Errors.Select(e => e.Description)));
 
-                await userManager.AddUserRoles(roleManager, new List<UserRoleEnum> { UserRoleEnum.Member }, user);
+                await userManager.AddUserRoles(roleManager, user, new List<UserRoleEnum> { UserRoleEnum.Member });
                 await userManager.AddUserClaims(user);
                 
                 await repositoryWrapper.SaveChanges();
@@ -148,7 +148,7 @@ namespace Splitted_backend.Controllers
             }
             catch (Exception exception)
             {
-                logger.LogError($"Error occurred inside LoginUser method. {exception}.");
+                logger.LogError($"Error occurred inside EmailCheck method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

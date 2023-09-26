@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AuthenticationServer
+namespace AuthenticationServer.Managers
 {
     public static class PemManager
     {
@@ -20,14 +20,14 @@ namespace AuthenticationServer
             using (var reader = new StreamReader(keyPath))
             {
                 PemReader pemReader = new PemReader(reader);
-                T keyParameters = (T) pemReader.ReadObject();
+                T keyParameters = (T)pemReader.ReadObject();
                 RSAParameters rsaParameters;
 
                 if (keyParameters is RsaPrivateCrtKeyParameters)
                     rsaParameters = DotNetUtilities.ToRSAParameters(keyParameters as RsaPrivateCrtKeyParameters);
                 else
                     rsaParameters = DotNetUtilities.ToRSAParameters(keyParameters);
-                
+
                 RSACryptoServiceProvider rsaCryptoServiceProvider = new RSACryptoServiceProvider();
                 rsaCryptoServiceProvider.ImportParameters(rsaParameters);
                 return rsaCryptoServiceProvider;

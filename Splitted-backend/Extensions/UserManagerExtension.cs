@@ -7,8 +7,8 @@ namespace Splitted_backend.Extensions
 {
     public static class UserManagerExtension
     {
-        public static async Task AddUserRoles(this UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, List<UserRoleEnum> roleEnums, 
-            User user)
+        public static async Task AddUserRoles(this UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, User user,
+            List<UserRoleEnum> roleEnums)
         {
             foreach (UserRoleEnum roleEnum in roleEnums)
             {
