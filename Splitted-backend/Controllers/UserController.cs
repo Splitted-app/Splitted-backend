@@ -78,8 +78,6 @@ namespace Splitted_backend.Controllers
                 await userManager.AddUserRoles(roleManager, user, new List<UserRoleEnum> { UserRoleEnum.Member });
                 await userManager.AddUserClaims(user);
                 
-                await repositoryWrapper.SaveChanges();
-
                 UserCreatedDTO userCreatedDTO = mapper.Map<UserCreatedDTO>(user);
                 return CreatedAtAction("RegisterUser", userCreatedDTO);
             }
@@ -157,6 +155,11 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPut]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "User updated")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PutUser([FromBody] UserPutDTO userPutDTO)
         {
             try
@@ -170,17 +173,41 @@ namespace Splitted_backend.Controllers
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
                 User? user = await userManager.FindByIdAsync(userId.ToString());
                 if (user is null)
-                    return BadRequest($"User with given id: {userId} doesn't exist.");
+                    return NotFound($"User with given id: {userId} doesn't exist.");
 
                 mapper.Map(userPutDTO, user);
                 await userManager.UpdateAsync(user);
-                await repositoryWrapper.SaveChanges();
 
                 return NoContent();
             }
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside PutUser method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        [SwaggerResponse(StatusCodes.Status200OK, "User data returned", typeof(UserGetDTO))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetUser()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                UserGetDTO userGetDTO = mapper.Map<UserGetDTO>(user);
+                return Ok(userGetDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetUser method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
