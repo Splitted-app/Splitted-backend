@@ -1,5 +1,7 @@
 ﻿using AuthenticationServer.Managers;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -149,6 +151,36 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside EmailCheck method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPut]
+        public async Task<IActionResult> PutUser([FromBody] UserPutDTO userPutDTO)
+        {
+            try
+            {
+                if (userPutDTO is null)
+                    return BadRequest("UserPutDTO object is null.");
+
+                if (!ModelState.IsValid)
+                    return BadRequest("Invalid model object.");
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return BadRequest($"User with given id: {userId} doesn't exist.");
+
+                mapper.Map(userPutDTO, user);
+                await userManager.UpdateAsync(user);
+                await repositoryWrapper.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside PutUser method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

@@ -21,11 +21,5 @@ namespace Models.DTOs.Incoming
 
         [Required]
         public string Currency { get; set; }
-
-        public decimal? BankBalance { get; set; }
-
-        public string? Bank { get; set; }
-
-        public string? AvatarImage { get; set; }
     }
 }

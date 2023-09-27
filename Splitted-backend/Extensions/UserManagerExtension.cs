@@ -25,9 +25,9 @@ namespace Splitted_backend.Extensions
         {
             List<Claim> userClaims = new List<Claim>
             {
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                new Claim("email", user.Email),
+                new Claim("username", user.UserName),
+                new Claim("user_id", user.Id.ToString())
             };
 
             await userManager.AddClaimsAsync(user, userClaims);
