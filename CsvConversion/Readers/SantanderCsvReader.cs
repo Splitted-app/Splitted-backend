@@ -1,6 +1,7 @@
 ﻿using CsvConversion.Mappers;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Http;
 using Models.CsvModels;
 using System;
 using System.Collections.Generic;
@@ -14,12 +15,12 @@ namespace CsvConversion.Readers
 {
     public class SantanderCsvReader : BaseCsvReader
     {
-        public SantanderCsvReader(string path) : base(path)
+        public SantanderCsvReader(IFormFile csvFile) : base(csvFile)
         {
         }
 
 
-        private void SetCurrency(CsvReader? csvReader) => SantanderMapper.currency = csvReader?.GetField<string>(4)!;
+        private void SetCurrency(CsvReader csvReader) => SantanderMapper.currency = csvReader.GetField<string>(4)!;
 
         protected override CsvConfiguration SetConfiguration()
         {

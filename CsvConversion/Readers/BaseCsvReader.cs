@@ -2,6 +2,7 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
+using Microsoft.AspNetCore.Http;
 using Models.CsvModels;
 using System.Linq.Expressions;
 using System.Text;
@@ -10,22 +11,35 @@ namespace CsvConversion.Readers
 {
     public abstract class BaseCsvReader
     {
-        protected string path;
+        protected IFormFile csvFile;
 
 
-        public BaseCsvReader(string path)
+        public BaseCsvReader(IFormFile csvFile)
         {
-            this.path = path;
+            this.csvFile = csvFile;
         }
 
 
-        protected void ConvertToUtf8(string path)
+        private string SaveCsvFile()
+        {
+            string fileName = Guid.NewGuid().ToString() + "_" + csvFile.FileName;
+
+            using (FileStream fileStream = new FileStream(fileName, FileMode.Create))
+            {
+                csvFile.CopyTo(fileStream);
+            }
+
+            ConvertToUtf8(fileName);
+            return fileName;
+        }
+
+        private void ConvertToUtf8(string fileName)
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            EncodingConverter.Encode(path, Encoding.GetEncoding(1250), Encoding.UTF8);
+            EncodingConverter.Encode(fileName, Encoding.GetEncoding(1250), Encoding.UTF8);
         }
 
-        protected void SetConverterOptions<T>(CsvReader csvReader, string[] formats)
+        private void SetConverterOptions<T>(CsvReader csvReader, string[] formats)
         {
             var options = new TypeConverterOptions { Formats = formats };
             csvReader.Context.TypeConverterOptionsCache.AddOptions<T>(options);
@@ -35,9 +49,9 @@ namespace CsvConversion.Readers
         {
             List<TransactionCsv> transactions = new List<TransactionCsv>();
             CsvConfiguration config = SetConfiguration();
-            ConvertToUtf8(path);
+            string fileName = SaveCsvFile();
 
-            using (var reader = new StreamReader(path, Encoding.UTF8))
+            using (var reader = new StreamReader(fileName, Encoding.UTF8))
             using (var csvReader = new CsvReader(reader, config))
             {
                 csvReader.Context.RegisterClassMap<T>();
@@ -49,6 +63,8 @@ namespace CsvConversion.Readers
                     transactions.Add(csvReader.GetRecord<TransactionCsv>()!);
                 }
             }
+
+            File.Delete(fileName);
             return transactions;
         }
 

@@ -1,6 +1,7 @@
 ﻿using CsvConversion.Mappers;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Http;
 using Models.CsvModels;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace CsvConversion.Readers
 {
     public class PekaoCsvReader : BaseCsvReader
     {
-        public PekaoCsvReader(string path) : base(path)
+        public PekaoCsvReader(IFormFile csvFile) : base(csvFile)
         {
         }
 

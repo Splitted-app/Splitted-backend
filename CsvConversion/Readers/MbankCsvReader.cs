@@ -8,12 +8,13 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace CsvConversion.Readers
 {
     public class MbankCsvReader : BaseCsvReader
     {
-        public MbankCsvReader(string path) : base(path)
+        public MbankCsvReader(IFormFile csvFile) : base(csvFile)
         {
         }
 
@@ -31,13 +32,15 @@ namespace CsvConversion.Readers
 
         protected override void SkipToHeaderRecord(CsvReader csvReader)
         {
-            while (true)
+            while (csvReader.Read())
             {
-                csvReader.Read();
                 string? field = csvReader.GetField<string>(0);
-                if (field is not null && field.Contains("Data")) break;
+                if (field is not null && field.Contains("Data"))
+                {
+                    csvReader.ReadHeader();
+                    return;
+                }
             }
-            csvReader.ReadHeader();
         }
 
         protected override bool DetermineEndOfTransactions(CsvReader csvReader)
