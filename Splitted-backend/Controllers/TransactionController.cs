@@ -52,7 +52,7 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return BadRequest($"User with id {userId} doesn't exist.");
 
-                if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv") // test jak sie wysle plik spreparowany tj. na chama .csv
+                if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv")
                     return BadRequest("Received file is not a csv file.");
 
                 BaseCsvReader csvReader; // ten switch tez do refactoringu najlepiej (bank na enum tez)
@@ -77,11 +77,11 @@ namespace Splitted_backend.Controllers
                         return BadRequest("Invalid bank.");
                 }
 
-                List<TransactionCsv> transactions = csvReader.GetTransactions(); // mozna zmodyfikowac by zwracac czy czytanie się powiodło (try catch na
-                // mapowanie wiersza na model - wtedy oznacza ze wgrany plik nie jest z dobrego banku) - jesli cos sie wywali w innym miejscu to juz nieprzewidziane
-                // i 500
-                List<Transaction> entityTransactions = mapper.Map<List<TransactionCsv>, List<Transaction>>(transactions);
+                List<TransactionCsv>? transactions = csvReader.GetTransactions(); 
+                if (transactions is null || transactions.Count == 0)
+                    return BadRequest("Received csv file is invalid or doesn't match the bank.");
 
+                List<Transaction> entityTransactions = mapper.Map<List<TransactionCsv>, List<Transaction>>(transactions);
                 user.Transactions.AddRange(entityTransactions);
                 await repositoryWrapper.SaveChanges();
 

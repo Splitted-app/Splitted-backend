@@ -1,10 +1,12 @@
-﻿using CsvConversion.Mappers;
+﻿using CsvConversion.Extensions;
+using CsvConversion.Mappers;
 using CsvHelper;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Microsoft.AspNetCore.Http;
 using Models.CsvModels;
 using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 
 namespace CsvConversion.Readers
@@ -45,9 +47,9 @@ namespace CsvConversion.Readers
             csvReader.Context.TypeConverterOptionsCache.AddOptions<T>(options);
         }
 
-        protected List<TransactionCsv> GetSpecificTransactions<T>(string[] formats) where T : ClassMap
+        protected List<TransactionCsv>? GetSpecificTransactions<T>(string[] formats) where T : ClassMap
         {
-            List<TransactionCsv> transactions = new List<TransactionCsv>();
+            List<TransactionCsv>? transactions = new List<TransactionCsv>();
             CsvConfiguration config = SetConfiguration();
             string fileName = SaveCsvFile();
 
@@ -60,7 +62,16 @@ namespace CsvConversion.Readers
 
                 while (csvReader.Read() && !DetermineEndOfTransactions(csvReader))
                 {
-                    transactions.Add(csvReader.GetRecord<TransactionCsv>()!);
+                    bool ifConverted;
+                    TransactionCsv? transactionCsv = csvReader.TryGetRecord<TransactionCsv>(out ifConverted);
+
+                    if (ifConverted)
+                        transactions.Add(transactionCsv!);
+                    else
+                    {
+                        transactions = null;
+                        break;
+                    }
                 }
             }
 
@@ -74,6 +85,6 @@ namespace CsvConversion.Readers
 
         protected abstract void SkipToHeaderRecord(CsvReader csvReader);
 
-        public abstract List<TransactionCsv> GetTransactions();
+        public abstract List<TransactionCsv>? GetTransactions();
     }
 }

@@ -49,7 +49,7 @@ namespace CsvConversion.Readers
             else return false;
         }
 
-        public override List<TransactionCsv> GetTransactions() => base.GetSpecificTransactions<IngMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
+        public override List<TransactionCsv>? GetTransactions() => base.GetSpecificTransactions<IngMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
 
     }
 }
