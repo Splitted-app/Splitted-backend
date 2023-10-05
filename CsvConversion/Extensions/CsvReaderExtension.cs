@@ -9,18 +9,17 @@ namespace CsvConversion.Extensions
 {
     public static class CsvReaderExtension
     {
-        public static T? TryGetRecord<T>(this CsvReader csvReader,  out bool ifConverted)
+        public static bool TryGetRecord<T>(this CsvReader csvReader,  out T? convertedRecord)
         {
             try
             {
-                T? convertedRecord = csvReader.GetRecord<T>();
-                ifConverted = true;
-                return convertedRecord;
+                convertedRecord = csvReader.GetRecord<T>();
+                return true;
             }
             catch (Exception)
             {
-                ifConverted = false;
-                return default;
+                convertedRecord = default;
+                return false;
             }
         }
     }

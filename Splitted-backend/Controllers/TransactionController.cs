@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.CsvModels;
 using Models.Entities;
+using Models.Enums;
+using Org.BouncyCastle.Asn1.X509.Qualified;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
@@ -19,6 +21,16 @@ namespace Splitted_backend.Controllers
     [Route("api/transaction")]
     public class TransactionController : ControllerBase
     {
+        public Dictionary<BankNameEnum, Func<IFormFile, BaseCsvReader>> BankToCsvReaderMapping { get; } = 
+            new Dictionary<BankNameEnum, Func<IFormFile, BaseCsvReader>>
+        {
+            { BankNameEnum.Ing, csvFile => new IngCsvReader(csvFile) },
+            { BankNameEnum.Mbank, csvFile => new MbankCsvReader(csvFile)},
+            { BankNameEnum.Pekao, csvFile => new PekaoCsvReader(csvFile)},
+            { BankNameEnum.Santander, csvFile => new SantanderCsvReader(csvFile)},
+            { BankNameEnum.Pko, csvFile => new PkoCsvReader(csvFile)},
+        };
+
         private ILogger<TransactionController> logger { get; }
 
         private IMapper mapper { get; }
@@ -43,7 +55,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status200OK, "Transactions saved")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid bank or file")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> PostCsvTransactions([FromForm] IFormFile csvFile, [FromQuery] string bank)
+        public async Task<IActionResult> PostCsvTransactions([FromForm] IFormFile csvFile, [FromQuery, BindRequired] BankNameEnum bankName)
         {
             try
             {
@@ -55,27 +67,12 @@ namespace Splitted_backend.Controllers
                 if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv")
                     return BadRequest("Received file is not a csv file.");
 
-                BaseCsvReader csvReader; // ten switch tez do refactoringu najlepiej (bank na enum tez)
-                switch (bank.ToLower())
-                {
-                    case "pko":
-                        csvReader = new PkoCsvReader(csvFile);
-                        break;
-                    case "santander":
-                        csvReader = new SantanderCsvReader(csvFile);
-                        break;
-                    case "pekao":
-                        csvReader = new PekaoCsvReader(csvFile);
-                        break;
-                    case "ing":
-                        csvReader = new IngCsvReader(csvFile);
-                        break;
-                    case "mbank":
-                        csvReader = new MbankCsvReader(csvFile);
-                        break;
-                    default:
-                        return BadRequest("Invalid bank.");
-                }
+                BaseCsvReader csvReader;
+                Func<IFormFile, BaseCsvReader>? csvReaderFactoryMethod = BankToCsvReaderMapping.GetValueOrDefault(bankName);
+                if (csvReaderFactoryMethod is not null)
+                    csvReader = csvReaderFactoryMethod(csvFile);
+                else
+                    return BadRequest("Invalid bank");
 
                 List<TransactionCsv>? transactions = csvReader.GetTransactions(); 
                 if (transactions is null || transactions.Count == 0)
