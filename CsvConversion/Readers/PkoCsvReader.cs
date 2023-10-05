@@ -8,12 +8,13 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace CsvConversion.Readers
 {
     public class PkoCsvReader : BaseCsvReader
     {
-        public PkoCsvReader(string path) : base(path)
+        public PkoCsvReader(IFormFile csvFile) : base(csvFile)
         {
         }
 
@@ -36,7 +37,7 @@ namespace CsvConversion.Readers
 
         protected override bool DetermineEndOfTransactions(CsvReader csvReader) => false;
 
-        public override List<TransactionCsv> GetTransactions() => base.GetSpecificTransactions<PkoMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
+        public override List<TransactionCsv>? GetTransactions() => base.GetSpecificTransactions<PkoMapper>(new[] { "dd-MM-yyyy", "yyyy-MM-dd" });
      
     }
 }

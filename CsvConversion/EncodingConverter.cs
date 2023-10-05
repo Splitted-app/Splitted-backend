@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,9 +18,10 @@ namespace CsvConversion
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             byte[] buffer = new byte[3];
 
-            using (FileStream file = new FileStream(path, FileMode.Open))
+
+            using (FileStream fileStream = new FileStream(path, FileMode.Open))
             {
-                int bytesRead = file.Read(buffer, 0, buffer.Length);
+                int bytesRead = fileStream.Read(buffer, 0, buffer.Length);
                 if (bytesRead == 3)
                 {
                     if (Enumerable.SequenceEqual(buffer, utf8BomBytes)) return Encoding.UTF8;

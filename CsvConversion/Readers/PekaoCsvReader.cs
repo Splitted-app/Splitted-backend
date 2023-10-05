@@ -1,6 +1,7 @@
 ﻿using CsvConversion.Mappers;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Microsoft.AspNetCore.Http;
 using Models.CsvModels;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace CsvConversion.Readers
 {
     public class PekaoCsvReader : BaseCsvReader
     {
-        public PekaoCsvReader(string path) : base(path)
+        public PekaoCsvReader(IFormFile csvFile) : base(csvFile)
         {
         }
 
@@ -40,7 +41,7 @@ namespace CsvConversion.Readers
             else return false;
         }
 
-        public override List<TransactionCsv> GetTransactions() => base.GetSpecificTransactions<PekaoMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
+        public override List<TransactionCsv>? GetTransactions() => base.GetSpecificTransactions<PekaoMapper>(new[] { "dd.MM.yyyy", "yyyy.MM.dd" });
        
     }
 }
