@@ -25,10 +25,10 @@ namespace Splitted_backend.Controllers
             new Dictionary<BankNameEnum, Func<IFormFile, BaseCsvReader>>
         {
             { BankNameEnum.Ing, csvFile => new IngCsvReader(csvFile) },
-            { BankNameEnum.Mbank, csvFile => new MbankCsvReader(csvFile)},
-            { BankNameEnum.Pekao, csvFile => new PekaoCsvReader(csvFile)},
-            { BankNameEnum.Santander, csvFile => new SantanderCsvReader(csvFile)},
-            { BankNameEnum.Pko, csvFile => new PkoCsvReader(csvFile)},
+            { BankNameEnum.Mbank, csvFile => new MbankCsvReader(csvFile) },
+            { BankNameEnum.Pekao, csvFile => new PekaoCsvReader(csvFile) },
+            { BankNameEnum.Santander, csvFile => new SantanderCsvReader(csvFile) },
+            { BankNameEnum.Pko, csvFile => new PkoCsvReader(csvFile) },
         };
 
         private ILogger<TransactionController> logger { get; }

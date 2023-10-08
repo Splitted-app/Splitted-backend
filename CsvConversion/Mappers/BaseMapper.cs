@@ -23,7 +23,7 @@ namespace CsvConversion.Mappers
 
         protected TransactionTypeEnum MapTransactionType(string field)
         {
-            if (field.Contains("blik") || (field.Contains("przelew na") && field.Contains("telefon"))) return TransactionTypeEnum.Blik;
+            if (field.Contains("blik") || (field.Contains("przelew na") && field.Contains("telefon")) || field.Contains("mobile")) return TransactionTypeEnum.Blik;
             else if (field.Contains("kartą") || field.Contains("karty")) return TransactionTypeEnum.Card;
             else if (possibleTransferNames.Any(ptn => field.Contains(ptn))) return TransactionTypeEnum.Transfer;
             else return TransactionTypeEnum.Other;
