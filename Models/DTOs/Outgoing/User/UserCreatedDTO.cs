@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.DTOs.Outgoing
+namespace Models.DTOs.Outgoing.User
 {
     public class UserCreatedDTO
     {

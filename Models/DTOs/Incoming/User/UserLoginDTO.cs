@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.DTOs.Incoming
+namespace Models.DTOs.Incoming.User
 {
     public class UserLoginDTO
     {

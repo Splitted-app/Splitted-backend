@@ -14,6 +14,8 @@ using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Models.DTOs.Incoming.Transaction;
+using Models.DTOs.Outgoing.Transaction;
 
 namespace Splitted_backend.Controllers
 {
@@ -52,8 +54,9 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("csv")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Transactions saved")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Transactions saved")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid bank or file")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "User unauthorized")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PostCsvTransactions([FromForm] IFormFile csvFile, [FromQuery, BindRequired] BankNameEnum bankName)
         {
@@ -82,11 +85,67 @@ namespace Splitted_backend.Controllers
                 user.Transactions.AddRange(entityTransactions);
                 await repositoryWrapper.SaveChanges();
 
-                return Ok();
+                return CreatedAtAction("PostCsvTransactions", new { count = transactions.Count() });
             }
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside PostCsvTransactions method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost]
+        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "User unauthorized")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> PostTransaction([FromBody] TransactionPostDTO transactionPostDTO)
+        {
+            try
+            {
+                if (transactionPostDTO is null)
+                    return BadRequest("TransactionPostDTO object is null.");
+
+                if (!ModelState.IsValid)
+                    return BadRequest("Invalid model object.");
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return BadRequest($"User with id {userId} doesn't exist.");
+
+                Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
+                repositoryWrapper.Transactions.Create(transaction);
+                user.Transactions.Add(transaction);
+                await repositoryWrapper.SaveChanges();
+
+                TransactionCreatedDTO transactionCreatedDTO = mapper.Map<TransactionCreatedDTO>(transaction);
+                return CreatedAtAction("PostTransaction", transactionCreatedDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside RegisterUser method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        public async Task<IActionResult> GetUserTransactions()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                return Ok();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside RegisterUser method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
