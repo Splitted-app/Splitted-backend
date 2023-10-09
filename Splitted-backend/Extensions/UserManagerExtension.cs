@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Models.Enums;
-using Splitted_backend.Controllers;
 using Splitted_backend.Models.Entities;
 using System.Linq.Expressions;
 using System.Security.Claims;

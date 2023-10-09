@@ -8,9 +8,9 @@ namespace Models.Enums
 {
     public enum TransactionTypeEnum
     {
+        Other,
         Blik,
         Card,
-        Transfer,
-        Other
+        Transfer
     }
 }
