@@ -13,6 +13,7 @@ namespace Splitted_backend.MapperProfiles
             CreateMap<TransactionCsv, Transaction>();
             CreateMap<TransactionPostDTO, Transaction>();
             CreateMap<Transaction, TransactionCreatedDTO>();
+            CreateMap<Transaction, TransactionGetDTO>();
         }
     }
 }

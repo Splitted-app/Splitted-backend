@@ -1,6 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Models.Enums;
+using Splitted_backend.Controllers;
 using Splitted_backend.Models.Entities;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace Splitted_backend.Extensions
@@ -31,6 +34,14 @@ namespace Splitted_backend.Extensions
             };
 
             await userManager.AddClaimsAsync(user, userClaims);
+        }
+
+        public static async Task<User?> FindByIdWithIncludesAsync(this UserManager<User> userManager, Guid userId, 
+            params Expression<Func<User, object>>[] userIncludes)
+        {
+            return await userManager.Users
+                .IncludeMultiple(userIncludes)
+                .FirstOrDefaultAsync(u => u.Id.Equals(userId));
         }
     }
 }
