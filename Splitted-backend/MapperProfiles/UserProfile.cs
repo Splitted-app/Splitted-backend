@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using Models.DTOs.Incoming;
-using Models.DTOs.Outgoing;
+using Models.DTOs.Incoming.User;
+using Models.DTOs.Outgoing.User;
 using Splitted_backend.Models.Entities;
 
 namespace Splitted_backend.MapperProfiles

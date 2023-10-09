@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.DTOs.Outgoing
+namespace Models.DTOs.Outgoing.User
 {
-    public class UserLoggedInDTO
+    public class UserEmailCheckDTO
     {
-        public string Token { get; set; }
+        public bool UserExists { get; set; }
     }
 }

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.DTOs.Incoming
+namespace Models.DTOs.Incoming.User
 {
     public class UserPutDTO
     {
@@ -15,7 +15,7 @@ namespace Models.DTOs.Incoming
         private readonly HashSet<string> setProperties = new HashSet<string>();
 
 
-        public HashSet<string> SetProperties 
+        public HashSet<string> SetProperties
         {
             get => new HashSet<string>(setProperties);
         }
@@ -30,7 +30,7 @@ namespace Models.DTOs.Incoming
             }
         }
 
-        public string? Bank 
+        public string? Bank
         {
             get => bank;
             set
@@ -40,7 +40,7 @@ namespace Models.DTOs.Incoming
             }
         }
 
-        public string? AvatarImage 
+        public string? AvatarImage
         {
             get => avatarImage;
             set
