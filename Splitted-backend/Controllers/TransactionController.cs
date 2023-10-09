@@ -84,7 +84,7 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Received csv file is invalid or doesn't match the bank.");
 
                 List<Transaction> entityTransactions = mapper.Map<List<Transaction>>(transactions);
-                user.Transactions.AddRange(entityTransactions);
+                //user.Transactions.AddRange(entityTransactions);
                 await repositoryWrapper.SaveChanges();
 
                 return CreatedAtAction("PostCsvTransactions", new { count = transactions.Count() });
@@ -120,7 +120,7 @@ namespace Splitted_backend.Controllers
 
                 Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
                 repositoryWrapper.Transactions.Create(transaction);
-                user.Transactions.Add(transaction);
+                //user.Transactions.Add(transaction);
                 await repositoryWrapper.SaveChanges();
 
                 TransactionCreatedDTO transactionCreatedDTO = mapper.Map<TransactionCreatedDTO>(transaction);
@@ -144,12 +144,13 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
-                if (user is null)
-                    return NotFound($"User with given id: {userId} doesn't exist.");
+                //User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
+                //if (user is null)
+                //    return NotFound($"User with given id: {userId} doesn't exist.");
 
-                List<TransactionGetDTO> userTransactions = mapper.Map<List<TransactionGetDTO>>(user.Transactions); 
-                return Ok(userTransactions);
+                //List<TransactionGetDTO> userTransactions = mapper.Map<List<TransactionGetDTO>>(user.Transactions); 
+                //return Ok(userTransactions);
+                return Ok();
                 
             }
             catch (Exception exception)
@@ -186,18 +187,18 @@ namespace Splitted_backend.Controllers
                 if (transaction is null)
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
-                Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
-                if (user is null)
-                    return NotFound($"User with given id: {userId} doesn't exist.");
+                //Guid userId = new Guid(User.FindFirstValue("user_id"));
+                //User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
+                //if (user is null)
+                //    return NotFound($"User with given id: {userId} doesn't exist.");
 
-                bool ifTransactionValid = user.Transactions.Any(t => t.Id.Equals(transactionId));
-                if (!ifTransactionValid)
-                    return Forbid($"Transaction doesn't belong to the user with id: {userId}.");
+                //bool ifTransactionValid = user.Transactions.Any(t => t.Id.Equals(transactionId));
+                //if (!ifTransactionValid)
+                //    return Forbid($"Transaction doesn't belong to the user with id: {userId}.");
 
-                mapper.Map(transactionPutDTO, transaction);
-                repositoryWrapper.Transactions.Update(transaction);
-                await repositoryWrapper.SaveChanges();
+                //mapper.Map(transactionPutDTO, transaction);
+                //repositoryWrapper.Transactions.Update(transaction);
+                //await repositoryWrapper.SaveChanges();
 
                 return NoContent();
             }
@@ -244,17 +245,17 @@ namespace Splitted_backend.Controllers
                 if (transactionIdsList.Count != transactions.Count)
                     return NotFound("Some of the transaction were not found.");
 
-                Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
-                if (user is null)
-                    return NotFound($"User with given id: {userId} doesn't exist.");
+                //Guid userId = new Guid(User.FindFirstValue("user_id"));
+                //User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
+                //if (user is null)
+                //    return NotFound($"User with given id: {userId} doesn't exist.");
 
-                bool ifTransactionsValid = transactions.All(t => user.Transactions.Contains(t));
-                if (!ifTransactionsValid)
-                    return Forbid($"Transaction doesn't belong to the user with id: {userId}.");
+                //bool ifTransactionsValid = transactions.All(t => user.Transactions.Contains(t));
+                //if (!ifTransactionsValid)
+                //    return Forbid($"Transaction doesn't belong to the user with id: {userId}.");
 
-                repositoryWrapper.Transactions.DeleteMultiple(transactions);
-                await repositoryWrapper.SaveChanges();
+                //repositoryWrapper.Transactions.DeleteMultiple(transactions);
+                //await repositoryWrapper.SaveChanges();
 
                 return NoContent();
             }

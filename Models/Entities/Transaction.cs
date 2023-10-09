@@ -33,8 +33,8 @@ namespace Models.Entities
         public string? UserCategory { get; set; }
 
 
-        public List<User> Users { get; set; } = new();
+        public Guid BudgetId { get; set; }
 
-        public List<UserTransaction> UserTransactions { get; set; } = new();
+        public Budget Budget { get; set; } = null!;
     }
 }

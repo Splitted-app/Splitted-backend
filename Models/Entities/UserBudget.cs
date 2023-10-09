@@ -8,16 +8,16 @@ using System.Threading.Tasks;
 
 namespace Models.Entities
 {
-    [Table("UserTransactions")]
-    public class UserTransaction
+    [Table("UserBudgets")]
+    public class UserBudget
     {
         public Guid UserId { get; set; }
 
-        public Guid TransactionId { get; set; }
+        public Guid BudgetId { get; set; }
 
 
         public User User { get; set; } = new();
 
-        public Transaction Transaction { get; set; } = new();
+        public Budget Budget { get; set; } = new();
     }
 }

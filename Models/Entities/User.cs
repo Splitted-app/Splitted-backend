@@ -8,18 +8,11 @@ namespace Splitted_backend.Models.Entities
     [Table("Users")]
     public class User : IdentityUser<Guid>
     {
-        public string Currency { get; set; }
-
-        public string? Bank { get; set; }
-
-        [Column(TypeName = "money")]
-        public decimal BankBalance { get; set; }
-
         public string? AvatarImage { get; set; }
 
 
-        public List<Transaction> Transactions { get; set; } = new();
+        public List<Budget> Budgets { get; set; } = new();
 
-        public List<UserTransaction> UserTransactions { get; set; } = new();
+        public List<UserBudget> UserBudgets { get; set; } = new();
     }
 }
