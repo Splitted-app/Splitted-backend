@@ -18,7 +18,7 @@ using System.Security.Claims;
 namespace Splitted_backend.Controllers
 {
     [ApiController]
-    [Route("api/user")]
+    [Route("api/users")]
     public class UserController : ControllerBase
     {
         private ILogger<UserController> logger { get; }
