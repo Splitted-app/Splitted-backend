@@ -53,7 +53,7 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
-        [SwaggerResponse(StatusCodes.Status201Created, "Budget created")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Budget created", typeof(BudgetCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
@@ -116,7 +116,7 @@ namespace Splitted_backend.Controllers
 
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
-                    return Forbid($"User with id {userId} isn't a part of the budget with id {budget.Id}");
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
                 if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv")
                     return BadRequest("Received file is not a csv file.");
@@ -153,7 +153,7 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("{budgetId}/transactions")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
@@ -182,7 +182,7 @@ namespace Splitted_backend.Controllers
 
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
-                    return Forbid($"User with id {userId} isn't a part of the budget with id {budget.Id}");
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
                 Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
                 repositoryWrapper.Transactions.Create(transaction);
@@ -201,22 +201,38 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{budgetId}/transactions")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(List<TransactionGetDTO>))]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> GetBudgetTransactions()
+        public async Task<IActionResult> GetBudgetTransactions([FromRoute, BindRequired] Guid budgetId, [FromQuery] DateTime? dateFrom,
+            [FromQuery] DateTime? dateTo)
         {
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                //User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
-                //if (user is null)
-                //    return NotFound($"User with given id: {userId} doesn't exist.");
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with id {userId} doesn't exist.");
 
-                //List<TransactionGetDTO> userTransactions = mapper.Map<List<TransactionGetDTO>>(user.Transactions); 
-                //return Ok(userTransactions);
-                return Ok();
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    b => b.Transactions, b => b.UserBudgets);
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                dateFrom ??= DateTime.MinValue;
+                dateTo ??= DateTime.MaxValue;
+                List<Transaction> transactionsFiltered = budget.Transactions.Where(t => t.Date <= dateTo && t.Date >= dateFrom)
+                    .OrderBy(t => t.Date)
+                    .ToList();
+
+                List<TransactionGetDTO> transactionFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered); 
+                return Ok(transactionFilteredDTO);
 
             }
             catch (Exception exception)

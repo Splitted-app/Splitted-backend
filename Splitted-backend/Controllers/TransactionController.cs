@@ -65,22 +65,21 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Invalid model object.");
 
                 Transaction? transaction = await repositoryWrapper.Transactions.GetEntityOrDefaultByCondition(t => t.Id.Equals(transactionId));
-
                 if (transaction is null)
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
-                //Guid userId = new Guid(User.FindFirstValue("user_id"));
-                //User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
-                //if (user is null)
-                //    return NotFound($"User with given id: {userId} doesn't exist.");
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets);
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
 
-                //bool ifTransactionValid = user.Transactions.Any(t => t.Id.Equals(transactionId));
-                //if (!ifTransactionValid)
-                //    return Forbid($"Transaction doesn't belong to the user with id: {userId}.");
+                bool ifTransactionValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(transaction.BudgetId));
+                if (!ifTransactionValid)
+                    return StatusCode(403, $"Transaction doesn't belong to the user with id: {userId}.");
 
-                //mapper.Map(transactionPutDTO, transaction);
-                //repositoryWrapper.Transactions.Update(transaction);
-                //await repositoryWrapper.SaveChanges();
+                mapper.Map(transactionPutDTO, transaction);
+                repositoryWrapper.Transactions.Update(transaction);
+                await repositoryWrapper.SaveChanges();
 
                 return NoContent();
             }
@@ -92,7 +91,7 @@ namespace Splitted_backend.Controllers
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpDelete("{transactionIds}")]
+        [HttpDelete("{*transactionIds}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Transactions deleted")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
@@ -107,43 +106,43 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Query parameter is null.");
 
                 List<Guid> transactionIdsList = new List<Guid>();
-                List<string> transactionIdStrings = transactionIds.Split(",")
+                List<string> transactionIdsStrings = transactionIds.Split("/")
                     .ToList();
 
-                foreach (string transactionIdString in transactionIdStrings)
+                foreach (string transactionIdString in transactionIdsStrings)
                 {
                     Guid transactionId;
                     bool parsed = Guid.TryParse(transactionIdString, out transactionId);
                     if (parsed)
                         transactionIdsList.Add(transactionId);
                     else
-                        return BadRequest("One of transactionIds is invalid.");
+                        return BadRequest("Some of transactionIds is invalid.");
                 }
 
                 if (transactionIdsList.Any(ti => ti.Equals(Guid.Empty)))
-                    return BadRequest("One of transactionIds is empty.");
+                    return BadRequest("Some of transactionIds is empty.");
 
                 List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByCondition(t => transactionIdsList.Contains(t.Id));
                 if (transactionIdsList.Count != transactions.Count)
-                    return NotFound("Some of the transaction were not found.");
+                    return NotFound("Some of transactions were not found.");
 
-                //Guid userId = new Guid(User.FindFirstValue("user_id"));
-                //User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Transactions);
-                //if (user is null)
-                //    return NotFound($"User with given id: {userId} doesn't exist.");
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets);
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
 
-                //bool ifTransactionsValid = transactions.All(t => user.Transactions.Contains(t));
-                //if (!ifTransactionsValid)
-                //    return Forbid($"Transaction doesn't belong to the user with id: {userId}.");
+                bool ifTransactionsValid = transactions.All(t => user.UserBudgets.Any(ub => ub.BudgetId.Equals(t.BudgetId)));
+                if (!ifTransactionsValid)
+                    return StatusCode(403, $"Some of transactions don't belong to the user with id: {userId}.");
 
-                //repositoryWrapper.Transactions.DeleteMultiple(transactions);
-                //await repositoryWrapper.SaveChanges();
+                repositoryWrapper.Transactions.DeleteMultiple(transactions);
+                await repositoryWrapper.SaveChanges();
 
                 return NoContent();
             }
             catch (Exception exception)
             {
-                logger.LogError($"Error occurred inside DeleteTransaction method. {exception}.");
+                logger.LogError($"Error occurred inside DeleteTransactions method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
