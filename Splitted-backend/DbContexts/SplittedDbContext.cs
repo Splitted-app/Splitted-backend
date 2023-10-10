@@ -13,6 +13,8 @@ namespace Splitted_backend.DbContexts
     {
         public DbSet<Transaction> Transactions { get; set; }
 
+        public DbSet<Budget> Budgets { get; set; }
+
 
         public SplittedDbContext(DbContextOptions<SplittedDbContext> dbContextOptions)
             : base(dbContextOptions)

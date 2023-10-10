@@ -9,6 +9,8 @@ namespace Splitted_backend.Repositories
 
         private ITransactionRepository transactions;
 
+        private IBudgetRepository budgets;
+
 
         public RepositoryWrapper(SplittedDbContext splittedDbContext)
         {
@@ -24,7 +26,16 @@ namespace Splitted_backend.Repositories
                 return transactions;
             }
         }
-        
+
+        public IBudgetRepository Budgets
+        {
+            get
+            {
+                budgets ??= new BudgetRepository(splittedDbContext);
+                return budgets;
+            }
+        }
+
         public async Task SaveChanges() => await splittedDbContext.SaveChangesAsync();
     }
 }

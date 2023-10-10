@@ -4,6 +4,8 @@
     {
         ITransactionRepository Transactions { get; }
 
+        IBudgetRepository Budgets { get; }
+        
         Task SaveChanges();
     }
 }

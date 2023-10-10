@@ -18,8 +18,5 @@ namespace Models.DTOs.Incoming.User
 
         [Required]
         public string Username { get; set; }
-
-        [Required]
-        public string Currency { get; set; }
     }
 }
