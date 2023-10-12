@@ -45,7 +45,7 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPut("{transactionId}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Transaction updated")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter or body")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "Transaction doesn't belong to the user")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction or user not found")]
@@ -55,9 +55,6 @@ namespace Splitted_backend.Controllers
         {
             try
             {
-                if (transactionId.Equals(Guid.Empty))
-                    return BadRequest("TransactionId is empty.");
-
                 if (transactionPutDTO is null)
                     return BadRequest("TransactionPutDTO object is null.");
 
@@ -93,7 +90,7 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpDelete("{*transactionIds}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Transactions deleted")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid path parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "Transaction doesn't belong to user")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction or user not found")]
@@ -102,9 +99,6 @@ namespace Splitted_backend.Controllers
         {
             try
             {
-                if (transactionIds is null)
-                    return BadRequest("Query parameter is null.");
-
                 List<Guid> transactionIdsList = new List<Guid>();
                 List<string> transactionIdsStrings = transactionIds.Split("/")
                     .ToList();
@@ -118,9 +112,6 @@ namespace Splitted_backend.Controllers
                     else
                         return BadRequest("Some of transactionIds is invalid.");
                 }
-
-                if (transactionIdsList.Any(ti => ti.Equals(Guid.Empty)))
-                    return BadRequest("Some of transactionIds is empty.");
 
                 List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByCondition(t => transactionIdsList.Contains(t.Id));
                 if (transactionIdsList.Count != transactions.Count)

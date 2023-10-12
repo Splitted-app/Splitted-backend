@@ -11,6 +11,7 @@ namespace Splitted_backend.MapperProfiles
         {
             CreateMap<BudgetPostDTO, Budget>();
             CreateMap<Budget, BudgetCreatedDTO>();
+            CreateMap<Budget, BudgetGetDTO>();
         }
     }
 

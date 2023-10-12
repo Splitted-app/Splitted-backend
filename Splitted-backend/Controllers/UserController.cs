@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.DTOs.Incoming.User;
+using Models.DTOs.Outgoing.Budget;
 using Models.DTOs.Outgoing.User;
 using Models.Enums;
 using Splitted_backend.Extensions;
@@ -208,6 +209,32 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside GetUser method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("budgets")]
+        [SwaggerResponse(StatusCodes.Status200OK, "User's budgets returned", typeof(List<BudgetGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetUserBudgets()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Budgets);
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(user.Budgets);
+                return Ok(budgets); 
+
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetUserBudgets method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
