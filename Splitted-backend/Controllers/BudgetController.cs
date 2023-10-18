@@ -174,6 +174,7 @@ namespace Splitted_backend.Controllers
 
                 List<Transaction> entityTransactions = mapper.Map<List<Transaction>>(transactions);
                 budget.Transactions.AddRange(entityTransactions);
+                user.Transactions.AddRange(entityTransactions);
                 await repositoryWrapper.SaveChanges();
 
                 return CreatedAtAction("PostCsvTransactionsToBudget", new { count = transactions.Count() });
@@ -220,8 +221,8 @@ namespace Splitted_backend.Controllers
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
                 Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
-                repositoryWrapper.Transactions.Create(transaction);
                 budget.Transactions.Add(transaction);
+                user.Transactions.Add(transaction);
                 await repositoryWrapper.SaveChanges();
 
                 TransactionCreatedDTO transactionCreatedDTO = mapper.Map<TransactionCreatedDTO>(transaction);

@@ -8,6 +8,10 @@ namespace Models.DTOs.Outgoing.User
 {
     public class UserGetDTO
     {
+        public string Email { get; set; }
+
+        public string Username { get; set; }
+
         public string? AvatarImage { get; set; }
     }
 }

@@ -29,5 +29,7 @@ namespace Models.DTOs.Outgoing.Transaction
         public string? AutoCategory { get; set; }
 
         public string? UserCategory { get; set; }
+
+        public Guid UserId { get; set; }
     }
 }
