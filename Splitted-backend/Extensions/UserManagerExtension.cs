@@ -42,5 +42,14 @@ namespace Splitted_backend.Extensions
                 .IncludeMultiple(userIncludes)
                 .FirstOrDefaultAsync(u => u.Id.Equals(userId));
         }
+
+        public static async Task<List<User>> FindMultipleByIdsWithIncludesAsync(this UserManager<User> userManager, 
+            IEnumerable<Guid> userIds, params Expression<Func<User, object>>[] userIncludes)
+        {
+            return await userManager.Users
+                .IncludeMultiple(userIncludes)
+                .Where(u => userIds.Any(ui => ui.Equals(u.Id)))
+                .ToListAsync();
+        }
     }
 }

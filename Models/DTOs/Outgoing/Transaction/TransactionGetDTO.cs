@@ -30,6 +30,8 @@ namespace Models.DTOs.Outgoing.Transaction
 
         public string? UserCategory { get; set; }
 
-        public Guid UserId { get; set; }
+        public string UserName { get; set; }
+
+        public string? AvatarImage { get; set; }
     }
 }
