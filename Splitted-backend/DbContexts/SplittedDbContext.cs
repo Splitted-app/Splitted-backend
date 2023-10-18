@@ -44,6 +44,9 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<Budget>()
                 .Property(b => b.Bank)
                 .HasConversion(new EnumToStringConverter<BankNameEnum>());
+            modelBuilder.Entity<Budget>()
+                .Property(b => b.BudgetType)
+                .HasConversion(new EnumToStringConverter<BudgetTypeEnum>());
         }
     }
 }

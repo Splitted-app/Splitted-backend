@@ -16,6 +16,8 @@ namespace Models.Entities
 
         public BankNameEnum? Bank { get; set; }
 
+        public BudgetTypeEnum BudgetType { get; set; }
+
         public string Currency { get; set; }
 
         [Column(TypeName = "money")]

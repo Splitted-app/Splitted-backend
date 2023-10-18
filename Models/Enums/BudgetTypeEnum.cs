@@ -6,13 +6,11 @@ using System.Threading.Tasks;
 
 namespace Models.Enums
 {
-    public enum BankNameEnum
+    public enum BudgetTypeEnum
     {
-        Ing,
-        Mbank,
-        Pekao,
-        Santander,
-        Pko,
-        Other
+        Personal,
+        Family,
+        Partner,
+        Temporary
     }
 }

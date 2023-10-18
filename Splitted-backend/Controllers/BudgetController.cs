@@ -160,6 +160,8 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Budget's bank is not specified, choose bank from the list.");
 
                 BankNameEnum bankName = (budget.Bank is null) ? (BankNameEnum)bank! : (BankNameEnum)budget.Bank;
+                if (bankName.Equals(BankNameEnum.Other))
+                    return BadRequest("Loading transactions from a csv file is not supported for this bank.");
 
                 BaseCsvReader csvReader;
                 Func<IFormFile, BaseCsvReader>? csvReaderFactoryMethod = BankToCsvReaderMapping.GetValueOrDefault(bankName);

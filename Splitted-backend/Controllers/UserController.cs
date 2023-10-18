@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.DTOs.Incoming.User;
 using Models.DTOs.Outgoing.Budget;
 using Models.DTOs.Outgoing.User;
+using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
@@ -219,7 +220,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> GetUserBudgets()
+        public async Task<IActionResult> GetUserBudgets([FromQuery] BudgetTypeEnum? budgetType)
         {
             try
             {
@@ -228,9 +229,11 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(user.Budgets);
+                List<Budget> filteredBudgets = user.Budgets
+                    .Where(b => budgetType is null || b.BudgetType.Equals(budgetType))
+                    .ToList();
+                List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(filteredBudgets);
                 return Ok(budgets); 
-
             }
             catch (Exception exception)
             {
