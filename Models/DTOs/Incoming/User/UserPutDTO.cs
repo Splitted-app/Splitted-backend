@@ -10,6 +10,7 @@ namespace Models.DTOs.Incoming.User
     public class UserPutDTO
     {
         private string? avatarImage;
+        private string? username;
         private readonly HashSet<string> setProperties = new HashSet<string>();
 
 
@@ -26,6 +27,16 @@ namespace Models.DTOs.Incoming.User
             {
                 avatarImage = value;
                 setProperties.Add(nameof(AvatarImage));
+            }
+        }
+
+        public string? UserName
+        {
+            get => username;
+            set
+            {
+                username = value;
+                setProperties.Add(nameof(UserName));
             }
         }
     }

@@ -67,9 +67,9 @@ namespace Splitted_backend.Controllers
                 if (userFound is not null)
                     return Conflict($"User with mail {userRegisterDTO.Email} already exists.");
 
-                userFound = await userManager.FindByNameAsync(userRegisterDTO.Username);
+                userFound = await userManager.FindByNameAsync(userRegisterDTO.UserName);
                 if (userFound is not null)
-                    return Conflict($"User with username {userRegisterDTO.Username} already exists.");
+                    return Conflict($"User with username {userRegisterDTO.UserName} already exists.");
 
                 User user = mapper.Map<User>(userRegisterDTO);
                 IdentityResult result = await userManager.CreateAsync(user, userRegisterDTO.Password);
@@ -161,6 +161,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Username already taken")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PutUser([FromBody] UserPutDTO userPutDTO)
         {
@@ -176,6 +177,11 @@ namespace Splitted_backend.Controllers
                 User? user = await userManager.FindByIdAsync(userId.ToString());
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
+
+                User? userFound = await userManager.FindByNameAsync(userPutDTO.UserName is null ? 
+                    string.Empty : userPutDTO.UserName);
+                if (userFound is not null && !user.Equals(userFound))
+                    return Conflict($"User with username {userPutDTO.UserName} already exists.");
 
                 mapper.Map(userPutDTO, user);
                 await userManager.UpdateAsync(user);
