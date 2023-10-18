@@ -8,11 +8,9 @@ namespace Models.DTOs.Outgoing.User
 {
     public class UserGetDTO
     {
-        public string Currency { get; set; }
+        public string Email { get; set; }
 
-        public decimal BankBalance { get; set; }
-
-        public string? Bank { get; set; }
+        public string Username { get; set; }
 
         public string? AvatarImage { get; set; }
     }

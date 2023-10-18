@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Splitted_backend.DbContexts;
 
@@ -11,9 +12,11 @@ using Splitted_backend.DbContexts;
 namespace Splitted_backend.Migrations
 {
     [DbContext(typeof(SplittedDbContext))]
-    partial class SplittedDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231009225222_Added budget entity, changed relationship betwen user and transaction")]
+    partial class Addedbudgetentitychangedrelationshipbetwenuserandtransaction
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,10 +168,6 @@ namespace Splitted_backend.Migrations
                     b.Property<decimal>("BudgetBalance")
                         .HasColumnType("money");
 
-                    b.Property<string>("BudgetType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -214,14 +213,9 @@ namespace Splitted_backend.Migrations
                     b.Property<string>("UserCategory")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
                     b.HasIndex("BudgetId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
                 });
@@ -369,15 +363,7 @@ namespace Splitted_backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Splitted_backend.Models.Entities.User", "User")
-                        .WithMany("Transactions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Budget");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Models.Entities.UserBudget", b =>
@@ -408,8 +394,6 @@ namespace Splitted_backend.Migrations
 
             modelBuilder.Entity("Splitted_backend.Models.Entities.User", b =>
                 {
-                    b.Navigation("Transactions");
-
                     b.Navigation("UserBudgets");
                 });
 #pragma warning restore 612, 618

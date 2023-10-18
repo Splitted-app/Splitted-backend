@@ -21,7 +21,7 @@ namespace Models.DTOs.Incoming.Transaction
         [Required]
         public DateTime Date { get; set; }
 
-        [Required]
+        [Required(AllowEmptyStrings = true)]
         public string Description { get; set; }
 
         [Required]

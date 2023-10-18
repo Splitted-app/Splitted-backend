@@ -14,9 +14,8 @@ namespace Splitted_backend.MapperProfiles
             CreateMap<User, UserCreatedDTO>();
 
             CreateMap<UserPutDTO, User>()
-                .ForMember(dest => dest.BankBalance, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.BankBalance))))
-                .ForMember(dest => dest.Bank, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Bank))))
-                .ForMember(dest => dest.AvatarImage, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.AvatarImage))));
+                .ForMember(dest => dest.AvatarImage, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.AvatarImage))))
+                .ForMember(dest => dest.UserName, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.UserName)) && src.UserName is not null));
 
             CreateMap<User, UserGetDTO>();
         }

@@ -29,5 +29,9 @@ namespace Models.DTOs.Outgoing.Transaction
         public string? AutoCategory { get; set; }
 
         public string? UserCategory { get; set; }
+
+        public string UserName { get; set; }
+
+        public string? AvatarImage { get; set; }
     }
 }

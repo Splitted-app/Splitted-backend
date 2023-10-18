@@ -13,6 +13,8 @@ namespace Splitted_backend.DbContexts
     {
         public DbSet<Transaction> Transactions { get; set; }
 
+        public DbSet<Budget> Budgets { get; set; }
+
 
         public SplittedDbContext(DbContextOptions<SplittedDbContext> dbContextOptions)
             : base(dbContextOptions)
@@ -33,12 +35,18 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
 
             modelBuilder.Entity<User>()
-                .HasMany(u => u.Transactions)
-                .WithMany(t => t.Users)
-                .UsingEntity<UserTransaction>();
+                .HasMany(u => u.Budgets)
+                .WithMany(b => b.Users)
+                .UsingEntity<UserBudget>();
             modelBuilder.Entity<Transaction>()
                 .Property(t => t.TransactionType)
                 .HasConversion(new EnumToStringConverter<TransactionTypeEnum>());
+            modelBuilder.Entity<Budget>()
+                .Property(b => b.Bank)
+                .HasConversion(new EnumToStringConverter<BankNameEnum>());
+            modelBuilder.Entity<Budget>()
+                .Property(b => b.BudgetType)
+                .HasConversion(new EnumToStringConverter<BudgetTypeEnum>());
         }
     }
 }

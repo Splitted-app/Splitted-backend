@@ -9,17 +9,13 @@ namespace Models.DTOs.Incoming.User
 {
     public class UserRegisterDTO
     {
-        [EmailAddress]
-        [Required]
+        [Required, EmailAddress]
         public string Email { get; set; }
 
         [Required]
         public string Password { get; set; }
 
-        [Required]
-        public string Username { get; set; }
-
-        [Required]
-        public string Currency { get; set; }
+        [Required, StringLength(50, MinimumLength = 2)]
+        public string UserName { get; set; }
     }
 }

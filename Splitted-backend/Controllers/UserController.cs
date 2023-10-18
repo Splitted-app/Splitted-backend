@@ -6,7 +6,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.DTOs.Incoming.User;
+using Models.DTOs.Outgoing.Budget;
 using Models.DTOs.Outgoing.User;
+using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
@@ -18,7 +20,7 @@ using System.Security.Claims;
 namespace Splitted_backend.Controllers
 {
     [ApiController]
-    [Route("api/user")]
+    [Route("api/users")]
     public class UserController : ControllerBase
     {
         private ILogger<UserController> logger { get; }
@@ -65,9 +67,9 @@ namespace Splitted_backend.Controllers
                 if (userFound is not null)
                     return Conflict($"User with mail {userRegisterDTO.Email} already exists.");
 
-                userFound = await userManager.FindByNameAsync(userRegisterDTO.Username);
+                userFound = await userManager.FindByNameAsync(userRegisterDTO.UserName);
                 if (userFound is not null)
-                    return Conflict($"User with username {userRegisterDTO.Username} already exists.");
+                    return Conflict($"User with username {userRegisterDTO.UserName} already exists.");
 
                 User user = mapper.Map<User>(userRegisterDTO);
                 IdentityResult result = await userManager.CreateAsync(user, userRegisterDTO.Password);
@@ -159,6 +161,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Username already taken")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PutUser([FromBody] UserPutDTO userPutDTO)
         {
@@ -174,6 +177,11 @@ namespace Splitted_backend.Controllers
                 User? user = await userManager.FindByIdAsync(userId.ToString());
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
+
+                User? userFound = await userManager.FindByNameAsync(userPutDTO.UserName is null ? 
+                    string.Empty : userPutDTO.UserName);
+                if (userFound is not null && !user.Equals(userFound))
+                    return Conflict($"User with username {userPutDTO.UserName} already exists.");
 
                 mapper.Map(userPutDTO, user);
                 await userManager.UpdateAsync(user);
@@ -208,6 +216,34 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside GetUser method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("budgets")]
+        [SwaggerResponse(StatusCodes.Status200OK, "User's budgets returned", typeof(List<BudgetGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetUserBudgets([FromQuery] BudgetTypeEnum? budgetType)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Budgets);
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<Budget> filteredBudgets = user.Budgets
+                    .Where(b => budgetType is null || b.BudgetType.Equals(budgetType))
+                    .ToList();
+                List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(filteredBudgets);
+                return Ok(budgets); 
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetUserBudgets method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
