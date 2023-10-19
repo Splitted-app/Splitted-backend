@@ -36,9 +36,9 @@ namespace CsvConversion.Mappers
             int countryIndex = Enumerable.Range(0, paymentDescriptionSplitted.Count())
                 .FirstOrDefault(i => paymentDescriptionSplitted[i].Contains("Kraj"), -1);
 
-            int[] finalDescriptionIndexes = new int[] { addressIndex + 1, cityIndex + 1, countryIndex + 1 };
+                int[] finalDescriptionIndexes = new int[] { addressIndex + 1, cityIndex + 1, countryIndex + 1 };
             IEnumerable<string> finalDescriptionSplitted = finalDescriptionIndexes
-                .Select(i => paymentDescriptionSplitted[i]);
+                .Select(i => i != 0 ? paymentDescriptionSplitted[i] : "");
 
             return string.Join(string.Empty, finalDescriptionSplitted)
                 .Beutify();
@@ -104,7 +104,7 @@ namespace CsvConversion.Mappers
             else if (transactionType.Equals(TransactionTypeEnum.Blik))
             {
                 if (operationType.ToLower().Contains("mobile")) return MapTransferDescription(row, transactionDescriptionIndex);
-                else return MapPaymentDescription(row, transactionDescriptionIndex);
+                else return MapPaymentDescription(row, transactionDescriptionIndex + 1);
             }
 
             else
