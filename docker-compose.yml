@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+  splitted-sql-server:
+    image: 'mcr.microsoft.com/mssql/server:2022-latest'
+    container_name: splitted-sql-server
+    volumes:
+      - splitted-data:/var/opt/mssql
+    ports:
+      - 1533:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Splitted123
+
+  splitted-backend:
+    build: 
+      context: .
+      dockerfile: ./Splitted-backend/Dockerfile
+    container_name: splitted-backend
+    ports:
+      - 8080:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - LANG=pl_PL.UTF-8
+      - LANGUAGE=pl_PL
+      - LC_ALL=pl_PL.UTF-8
+    links:
+      - splitted-sql-server
+  
+volumes:
+  splitted-data:
+

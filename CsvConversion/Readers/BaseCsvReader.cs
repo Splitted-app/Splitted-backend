@@ -47,6 +47,19 @@ namespace CsvConversion.Readers
             csvReader.Context.TypeConverterOptionsCache.AddOptions<T>(options);
         }
 
+        private bool TrySkipToHeaderRecord(CsvReader csvReader)
+        {
+            try
+            {
+                SkipToHeaderRecord(csvReader);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         protected List<TransactionCsv>? GetSpecificTransactions<T>(string[] formats) where T : ClassMap
         {
             List<TransactionCsv>? transactions = new List<TransactionCsv>();
@@ -58,7 +71,9 @@ namespace CsvConversion.Readers
             {
                 csvReader.Context.RegisterClassMap<T>();
                 SetConverterOptions<DateTime>(csvReader, formats);
-                SkipToHeaderRecord(csvReader);
+
+                if (!TrySkipToHeaderRecord(csvReader))
+                    return transactions;
 
                 while (csvReader.Read() && !DetermineEndOfTransactions(csvReader))
                 {

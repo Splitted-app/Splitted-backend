@@ -20,7 +20,14 @@ namespace CsvConversion.Readers
         }
 
 
-        private void SetCurrency(CsvReader csvReader) => SantanderMapper.currency = csvReader.GetField<string>(4)!;
+        private void SetCurrency(CsvReader csvReader)
+        {
+            string potentialCurrency = csvReader.GetField<string>(4)!;
+            if (potentialCurrency.ToLower().Contains("waluta"))
+                throw new Exception();
+
+            SantanderMapper.currency = potentialCurrency;
+        }
 
         protected override CsvConfiguration SetConfiguration()
         {
