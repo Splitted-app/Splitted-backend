@@ -43,10 +43,25 @@ namespace Splitted_backend.Extensions
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
+            LoadTokenKeys(configuration);
             AuthenticationManager authenticationManager = new AuthenticationManager(configuration);
 
             services.AddAuthentication(authenticationManager.ConfigureAuthenticationSchema)
                 .AddJwtBearer(authenticationManager.ConfigureTokenValidation);
+        }
+
+        private static void LoadTokenKeys(IConfiguration configuration)
+        {
+            string? privateKeyPath = configuration["KeysPath:PrivateKeyPath"];
+            string? publicKeyPath = configuration["KeysPath:PublicKeyPath"];
+
+            if (privateKeyPath is not null && publicKeyPath is not null)
+            {
+                configuration["Keys:PrivateKey"] = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), 
+                    privateKeyPath));
+                configuration["Keys:PublicKey"] = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), 
+                    publicKeyPath));
+            }
         }
     }
 }
