@@ -1,4 +1,4 @@
-version: '3'
+version: '3.9'
 
 services:
   splitted-sql-server:
@@ -11,6 +11,8 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=Splitted123
+    networks:
+      - backend
 
   splitted-backend:
     build: 
@@ -24,9 +26,25 @@ services:
       - LANG=pl_PL.UTF-8
       - LANGUAGE=pl_PL
       - LC_ALL=pl_PL.UTF-8
-    links:
-      - splitted-sql-server
+    networks:
+      - backend
+      - frontend
+  
+  splitted-app:
+    build:
+      context: ../Splitted-frontend
+      dockerfile: ../Splitted-frontend/Dockerfile
+    container_name: splitted-app
+    ports:
+      - 3000:3000
+    networks:
+      - frontend
   
 volumes:
   splitted-data:
 
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
