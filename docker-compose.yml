@@ -36,7 +36,10 @@ services:
       dockerfile: ../Splitted-frontend/Dockerfile
     container_name: splitted-app
     ports:
-      - 3000:3000
+      - 8000:80
+    environment:
+      - API_URL=http://splitted-backend:80
+      - PORT=80
     networks:
       - frontend
   
