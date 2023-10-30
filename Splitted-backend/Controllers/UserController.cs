@@ -132,6 +132,65 @@ namespace Splitted_backend.Controllers
             }
         }
 
+        [HttpPost("refresh")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Successfully refreshed", typeof(UserLoggedInDTO))]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Invalid refresh token")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> RefreshToken(string refreshToken)
+        {
+            try
+            {
+                User? userFound = await userManager.FindByRefreshTokenAsync(refreshToken);
+                if (userFound is null || userFound.RefreshTokenExpiryTime <= DateTime.Now)
+                    return StatusCode(403, "Invalid refresh token.");
+
+                UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
+                {
+                    Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(userFound))),
+                    RefreshToken = authenticationManager.GenerateRefreshToken()
+                };
+
+                userFound.RefreshToken = userLoggedInDTO.RefreshToken;
+                userFound.RefreshTokenExpiryTime = DateTime.Now.AddHours(24);
+
+                await userManager.UpdateAsync(userFound);
+                return Ok(userLoggedInDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside RefreshToken method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("revoke")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Successfully revoked")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> RevokeToken()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                user.RefreshToken = null;
+                user.RefreshTokenExpiryTime = null;
+
+                await userManager.UpdateAsync(user);
+                return Ok();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside RevokeToken method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
         [HttpGet("email-check")]
         [SwaggerResponse(StatusCodes.Status200OK, "Determined if user exists", typeof(UserEmailCheckDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]

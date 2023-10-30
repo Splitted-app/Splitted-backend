@@ -51,5 +51,11 @@ namespace Splitted_backend.Extensions
                 .Where(u => userIds.Any(ui => ui.Equals(u.Id)))
                 .ToListAsync();
         }
+
+        public static async Task<User?> FindByRefreshTokenAsync(this UserManager<User> userManager, string refreshToken)
+        {
+            return await userManager.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken != null && u.RefreshToken.Equals(refreshToken));
+        }
     }
 }
