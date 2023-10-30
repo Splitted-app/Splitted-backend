@@ -1,0 +1,53 @@
+version: '3.9'
+
+services:
+  splitted-sql-server:
+    image: 'mcr.microsoft.com/mssql/server:2022-latest'
+    container_name: splitted-sql-server
+    volumes:
+      - splitted-data:/var/opt/mssql
+    ports:
+      - 1533:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Splitted123
+    networks:
+      - backend
+
+  splitted-backend:
+    build: 
+      context: .
+      dockerfile: ./Splitted-backend/Dockerfile
+    container_name: splitted-backend
+    ports:
+      - 8080:80
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - LANG=pl_PL.UTF-8
+      - LANGUAGE=pl_PL
+      - LC_ALL=pl_PL.UTF-8
+    networks:
+      - backend
+      - frontend
+  
+  splitted-app:
+    build:
+      context: ../Splitted-frontend
+      dockerfile: ../Splitted-frontend/Dockerfile
+    container_name: splitted-app
+    ports:
+      - 8000:80
+    environment:
+      - API_URL=http://splitted-backend:80
+      - PORT=80
+    networks:
+      - frontend
+  
+volumes:
+  splitted-data:
+
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge

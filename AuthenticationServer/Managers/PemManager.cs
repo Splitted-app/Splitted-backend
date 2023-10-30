@@ -15,9 +15,9 @@ namespace AuthenticationServer.Managers
 {
     public static class PemManager
     {
-        public static RSACryptoServiceProvider LoadKey<T>(string keyPath) where T : RsaKeyParameters
+        public static RSACryptoServiceProvider LoadKey<T>(string key) where T : RsaKeyParameters
         {
-            using (var reader = new StreamReader(keyPath))
+            using (var reader = new StringReader(key))
             {
                 PemReader pemReader = new PemReader(reader);
                 T keyParameters = (T)pemReader.ReadObject();
