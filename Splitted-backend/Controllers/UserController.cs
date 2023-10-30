@@ -115,13 +115,93 @@ namespace Splitted_backend.Controllers
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
-                    Token = authenticationManager.GenerateToken(new List<Claim>(await userManager.GetClaimsAsync(user)))
+                    Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(user))),
                 };
+
+                user.RefreshToken = authenticationManager.GenerateRefreshToken();
+                user.RefreshTokenExpiryTime = DateTime.Now.AddHours(24);
+                await userManager.UpdateAsync(user);
+
+                Response.Cookies.Append("X-Refresh-Token", user.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Secure = true
+                });
                 return Ok(userLoggedInDTO);
             }
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside LoginUser method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [HttpPost("refresh")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Successfully refreshed", typeof(UserLoggedInDTO))]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Invalid refresh token")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Refresh token not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> RefreshToken()
+        {
+            try
+            {
+                if (!Request.Cookies.TryGetValue("X-Refresh-Token", out string? refreshToken))
+                    return BadRequest("Refresh token not found.");
+
+                User? userFound = await userManager.FindByRefreshTokenAsync(refreshToken!);
+                if (userFound is null || userFound.RefreshTokenExpiryTime <= DateTime.Now)
+                    return StatusCode(403, "Invalid refresh token.");
+
+                UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
+                {
+                    Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(userFound))),
+                };
+
+                userFound.RefreshToken = authenticationManager.GenerateRefreshToken();
+                userFound.RefreshTokenExpiryTime = DateTime.Now.AddHours(24);
+                await userManager.UpdateAsync(userFound);
+
+                Response.Cookies.Append("X-Refresh-Token", userFound.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Secure = true,
+                });
+                return Ok(userLoggedInDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside RefreshToken method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("revoke")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Successfully revoked")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> RevokeToken()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                user.RefreshToken = null;
+                user.RefreshTokenExpiryTime = null;
+                await userManager.UpdateAsync(user);
+
+                Response.Cookies.Delete("X-Refresh-Token");
+                return Ok();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside RevokeToken method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

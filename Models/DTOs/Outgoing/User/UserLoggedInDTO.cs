@@ -9,5 +9,6 @@ namespace Models.DTOs.Outgoing.User
     public class UserLoggedInDTO
     {
         public string Token { get; set; }
+
     }
 }

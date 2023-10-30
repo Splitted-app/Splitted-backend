@@ -63,7 +63,7 @@ namespace CsvConversion.Mappers
                         .SkipLast(elementsToSkipLast)
                         .ToArray();
 
-                    return string.Join(" ", descriptionSplitted)
+                    return string.Join(" ", descriptionSplitted) + $"\n {address}"
                         .Beutify();
                 }
 

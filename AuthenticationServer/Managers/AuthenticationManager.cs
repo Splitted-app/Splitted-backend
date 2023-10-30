@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace AuthenticationServer.Managers
             audience = configuration.GetSection("Audience").Get<List<string>>();
         }
 
-        public string GenerateToken(List<Claim> userClaims)
+        public string GenerateAccessToken(List<Claim> userClaims)
         {
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             RsaSecurityKey rsaSecurityKey = new RsaSecurityKey(PemManager.LoadKey<RsaPrivateCrtKeyParameters>(configuration["Keys:PrivateKey"]!));
@@ -41,13 +42,23 @@ namespace AuthenticationServer.Managers
 
             SecurityTokenDescriptor jwtTokenDescriptor = new SecurityTokenDescriptor
             {
-                Expires = DateTime.Now.AddHours(1),
+                Expires = DateTime.Now.AddMinutes(10),
                 SigningCredentials = signingCredentials,
                 Claims = claimsDictionary
             };
 
             SecurityToken jwtToken = jwtSecurityTokenHandler.CreateToken(jwtTokenDescriptor);
             return jwtSecurityTokenHandler.WriteToken(jwtToken);
+        }
+
+        public string GenerateRefreshToken()
+        {
+            byte[] randomNumber = new byte[32];
+            using (RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create())
+            {
+                randomNumberGenerator.GetBytes(randomNumber);
+                return Convert.ToBase64String(randomNumber);
+            }
         }
 
         public void ConfigureAuthenticationSchema(AuthenticationOptions options)
