@@ -77,8 +77,7 @@ namespace CsvConversion.Readers
 
                 while (csvReader.Read() && !DetermineEndOfTransactions(csvReader))
                 {
-                    TransactionCsv? transactionCsv;
-                    bool ifConverted = csvReader.TryGetRecord(out transactionCsv);
+                    bool ifConverted = csvReader.TryGetRecord(out TransactionCsv? transactionCsv);
 
                     if (ifConverted)
                         transactions.Add(transactionCsv!);

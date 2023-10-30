@@ -116,13 +116,18 @@ namespace Splitted_backend.Controllers
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
                     Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(user))),
-                    RefreshToken = authenticationManager.GenerateRefreshToken()
                 };
 
-                user.RefreshToken = userLoggedInDTO.RefreshToken;
+                user.RefreshToken = authenticationManager.GenerateRefreshToken();
                 user.RefreshTokenExpiryTime = DateTime.Now.AddHours(24);
-
                 await userManager.UpdateAsync(user);
+
+                Response.Cookies.Append("X-Refresh-Token", user.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Secure = true
+                });
                 return Ok(userLoggedInDTO);
             }
             catch (Exception exception)
@@ -135,25 +140,34 @@ namespace Splitted_backend.Controllers
         [HttpPost("refresh")]
         [SwaggerResponse(StatusCodes.Status200OK, "Successfully refreshed", typeof(UserLoggedInDTO))]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "Invalid refresh token")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Refresh token not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> RefreshToken(string refreshToken)
+        public async Task<IActionResult> RefreshToken()
         {
             try
             {
-                User? userFound = await userManager.FindByRefreshTokenAsync(refreshToken);
+                if (!Request.Cookies.TryGetValue("X-Refresh-Token", out string? refreshToken))
+                    return BadRequest("Refresh token not found.");
+
+                User? userFound = await userManager.FindByRefreshTokenAsync(refreshToken!);
                 if (userFound is null || userFound.RefreshTokenExpiryTime <= DateTime.Now)
                     return StatusCode(403, "Invalid refresh token.");
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
                     Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(userFound))),
-                    RefreshToken = authenticationManager.GenerateRefreshToken()
                 };
 
-                userFound.RefreshToken = userLoggedInDTO.RefreshToken;
+                userFound.RefreshToken = authenticationManager.GenerateRefreshToken();
                 userFound.RefreshTokenExpiryTime = DateTime.Now.AddHours(24);
-
                 await userManager.UpdateAsync(userFound);
+
+                Response.Cookies.Append("X-Refresh-Token", userFound.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.Strict,
+                    Secure = true,
+                });
                 return Ok(userLoggedInDTO);
             }
             catch (Exception exception)
@@ -180,8 +194,9 @@ namespace Splitted_backend.Controllers
 
                 user.RefreshToken = null;
                 user.RefreshTokenExpiryTime = null;
-
                 await userManager.UpdateAsync(user);
+
+                Response.Cookies.Delete("X-Refresh-Token");
                 return Ok();
             }
             catch (Exception exception)
