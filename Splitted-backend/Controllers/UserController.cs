@@ -115,8 +115,14 @@ namespace Splitted_backend.Controllers
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
-                    Token = authenticationManager.GenerateToken(new List<Claim>(await userManager.GetClaimsAsync(user)))
+                    Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(user))),
+                    RefreshToken = authenticationManager.GenerateRefreshToken()
                 };
+
+                user.RefreshToken = userLoggedInDTO.RefreshToken;
+                user.RefreshTokenExpiryTime = DateTime.Now.AddHours(24);
+
+                await userManager.UpdateAsync(user);
                 return Ok(userLoggedInDTO);
             }
             catch (Exception exception)

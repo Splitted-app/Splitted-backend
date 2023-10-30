@@ -66,16 +66,28 @@ namespace Splitted_backend.Controllers
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets);
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets, u => u.Transactions);
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                bool ifTransactionValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(transaction.BudgetId));
+                Guid budgetId = transaction.BudgetId;
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifTransactionValid = user.Transactions.Any(t => t.Id.Equals(transactionId));
                 if (!ifTransactionValid)
                     return StatusCode(403, $"Transaction doesn't belong to the user with id: {userId}.");
+                
+                if (transactionPutDTO.Amount is not null)
+                {
+                    decimal balanceDifference = (decimal)transactionPutDTO.Amount - transaction.Amount;
+                    budget.BudgetBalance += balanceDifference;
+                }
 
                 mapper.Map(transactionPutDTO, transaction);
                 repositoryWrapper.Transactions.Update(transaction);
+                repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
 
                 return NoContent();
@@ -118,15 +130,28 @@ namespace Splitted_backend.Controllers
                     return NotFound("Some of transactions were not found.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets);
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets, u => u.Transactions);
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                bool ifTransactionsValid = transactions.All(t => user.UserBudgets.Any(ub => ub.BudgetId.Equals(t.BudgetId)));
+                Guid budgetId = transactions[0].BudgetId;
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(budgetId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                bool ifTransactionsValid = transactions.All(t => user.Transactions.Any(ut => ut.Id.Equals(t.Id)));
                 if (!ifTransactionsValid)
                     return StatusCode(403, $"Some of transactions don't belong to the user with id: {userId}.");
 
+                decimal balanceDifference = transactions.Aggregate(0M, (prev, current) => prev + current.Amount);
+                budget.BudgetBalance -= balanceDifference;
+
                 repositoryWrapper.Transactions.DeleteMultiple(transactions);
+                repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
 
                 return NoContent();

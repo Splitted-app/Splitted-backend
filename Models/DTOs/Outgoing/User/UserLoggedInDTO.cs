@@ -9,5 +9,7 @@ namespace Models.DTOs.Outgoing.User
     public class UserLoggedInDTO
     {
         public string Token { get; set; }
+
+        public string RefreshToken { get; set; }
     }
 }
