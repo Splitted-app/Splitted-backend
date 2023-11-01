@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.DTOs.Incoming.User;
 using Models.DTOs.Outgoing.Budget;
 using Models.DTOs.Outgoing.User;
+using Models.EmailModels;
 using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
@@ -29,6 +30,8 @@ namespace Splitted_backend.Controllers
 
         private IRepositoryWrapper repositoryWrapper { get; }
 
+        private IEmailSender emailSender { get; }
+
         private UserManager<User> userManager { get; }
 
         private RoleManager<IdentityRole<Guid>> roleManager { get; }
@@ -36,12 +39,13 @@ namespace Splitted_backend.Controllers
         private AuthenticationManager authenticationManager { get; }
 
 
-        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, UserManager<User> userManager,  
-            RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
+        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, IEmailSender emailSender, 
+            UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
         {
             this.logger = logger;
             this.mapper = mapper;
             this.repositoryWrapper = repositoryWrapper;
+            this.emailSender = emailSender;
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.authenticationManager = new AuthenticationManager(configuration);
@@ -81,6 +85,13 @@ namespace Splitted_backend.Controllers
                 await userManager.AddUserClaims(user);
                 
                 UserCreatedDTO userCreatedDTO = mapper.Map<UserCreatedDTO>(user);
+
+                await emailSender.SendEmail(new EmailMessage(new EmailAddress[] { new EmailAddress {
+                    DisplayName = "aaa",
+                    Address = userCreatedDTO.Email,
+                    } 
+                }, "Test", "Hello from splittedapp!:)"));
+
                 return CreatedAtAction("RegisterUser", userCreatedDTO);
             }
             catch (Exception exception)
