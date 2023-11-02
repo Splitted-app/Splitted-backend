@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Models.DTOs.Incoming.User;
 using Models.DTOs.Outgoing.Budget;
 using Models.DTOs.Outgoing.User;
+using Models.EmailModels;
 using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
@@ -29,6 +30,8 @@ namespace Splitted_backend.Controllers
 
         private IRepositoryWrapper repositoryWrapper { get; }
 
+        private IEmailSender emailSender { get; }
+
         private UserManager<User> userManager { get; }
 
         private RoleManager<IdentityRole<Guid>> roleManager { get; }
@@ -36,12 +39,13 @@ namespace Splitted_backend.Controllers
         private AuthenticationManager authenticationManager { get; }
 
 
-        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, UserManager<User> userManager,  
-            RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
+        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, IEmailSender emailSender, 
+            UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
         {
             this.logger = logger;
             this.mapper = mapper;
             this.repositoryWrapper = repositoryWrapper;
+            this.emailSender = emailSender;
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.authenticationManager = new AuthenticationManager(configuration);
@@ -79,7 +83,10 @@ namespace Splitted_backend.Controllers
 
                 await userManager.AddUserRoles(roleManager, user, new List<UserRoleEnum> { UserRoleEnum.Member });
                 await userManager.AddUserClaims(user);
-                
+
+                string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                await emailSender.SendVerificationEmail(token, user.Email);
+
                 UserCreatedDTO userCreatedDTO = mapper.Map<UserCreatedDTO>(user);
                 return CreatedAtAction("RegisterUser", userCreatedDTO);
             }
@@ -88,6 +95,24 @@ namespace Splitted_backend.Controllers
                 logger.LogError($"Error occurred inside RegisterUser method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
+        }
+
+        [HttpGet("confirm-email")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Confirmed email")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid token")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery, BindRequired] string token, [FromQuery, BindRequired] string email)
+        {
+            User user = await userManager.FindByEmailAsync(email);
+            if (user is null)
+                return NotFound($"User with email {email} doesn't exist.");
+
+            IdentityResult result = await userManager.ConfirmEmailAsync(user, token);
+            if (!result.Succeeded)
+                return Unauthorized(string.Join("\n", result.Errors.Select(e => e.Description)));
+
+            return Ok();
         }
 
         [HttpPost("login")]
@@ -139,7 +164,7 @@ namespace Splitted_backend.Controllers
 
         [HttpPost("refresh")]
         [SwaggerResponse(StatusCodes.Status200OK, "Successfully refreshed", typeof(UserLoggedInDTO))]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "Invalid refresh token")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid refresh token")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Refresh token not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> RefreshToken()
@@ -151,7 +176,7 @@ namespace Splitted_backend.Controllers
 
                 User? userFound = await userManager.FindByRefreshTokenAsync(refreshToken!);
                 if (userFound is null || userFound.RefreshTokenExpiryTime <= DateTime.Now)
-                    return StatusCode(403, "Invalid refresh token.");
+                    return Unauthorized("Invalid refresh token.");
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
