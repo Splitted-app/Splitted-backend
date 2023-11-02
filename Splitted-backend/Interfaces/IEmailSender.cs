@@ -4,6 +4,6 @@ namespace Splitted_backend.Interfaces
 {
     public interface IEmailSender
     {
-        Task SendEmail(EmailMessage emailMessage);
+        Task SendVerificationEmail(string token, string email);
     }
 }

@@ -3,6 +3,10 @@ using MimeKit;
 using MailKit.Net.Smtp;
 using Models.EmailModels;
 using Splitted_backend.Interfaces;
+using Splitted_backend.Models.Entities;
+using System.Web;
+using System.Collections.Specialized;
+using Splitted_backend.Extensions;
 
 namespace Splitted_backend.ExternalServices
 {
@@ -17,7 +21,27 @@ namespace Splitted_backend.ExternalServices
         }
 
 
-        public async Task SendEmail(EmailMessage emailMessage)
+        public async Task SendVerificationEmail(string token, string email)
+        {
+            Uri emailVerificationUri = new Uri(emailConfiguration.EmailVerificationUri);
+            emailVerificationUri = emailVerificationUri.AddParameter("token", token);
+            emailVerificationUri = emailVerificationUri.AddParameter("email", email);
+
+            List<EmailAddress> emailAddresses = new List<EmailAddress>()
+            {
+                new EmailAddress
+                {
+                    DisplayName = email.Split("@")[0],
+                    Address = email
+                }
+            };
+            string subject = "Confirmation email link";
+            string content = $"Click the link below to confirm your email: \n {emailVerificationUri}";
+
+            await SendEmail(new EmailMessage(emailAddresses, subject, content));
+        }
+
+        private async Task SendEmail(EmailMessage emailMessage)
         {
             MimeMessage message = CreateEmailMessage(emailMessage);
             await SendAsync(message);
