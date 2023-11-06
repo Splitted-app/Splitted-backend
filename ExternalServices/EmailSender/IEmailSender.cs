@@ -1,6 +1,6 @@
 ﻿using Models.EmailModels;
 
-namespace Splitted_backend.Interfaces
+namespace ExternalServices.EmailSender
 {
     public interface IEmailSender
     {

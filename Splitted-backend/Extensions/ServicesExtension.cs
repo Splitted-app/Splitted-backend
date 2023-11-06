@@ -6,7 +6,7 @@ using Splitted_backend.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using AuthenticationServer.Managers;
 using Models.EmailModels;
-using Splitted_backend.ExternalServices;
+using ExternalServices.EmailSender;
 
 namespace Splitted_backend.Extensions
 {

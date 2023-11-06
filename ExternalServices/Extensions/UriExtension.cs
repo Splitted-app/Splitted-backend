@@ -2,7 +2,7 @@
 using System.Collections.Specialized;
 using System.Web;
 
-namespace Splitted_backend.Extensions
+namespace ExternalServices.Extensions
 {
     public static class UriExtension
     {
