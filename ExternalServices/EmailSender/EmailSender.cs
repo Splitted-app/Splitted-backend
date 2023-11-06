@@ -1,14 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.ChangeTracking;
-using MimeKit;
+﻿using MimeKit;
 using MailKit.Net.Smtp;
 using Models.EmailModels;
-using Splitted_backend.Interfaces;
-using Splitted_backend.Models.Entities;
-using System.Web;
-using System.Collections.Specialized;
-using Splitted_backend.Extensions;
+using ExternalServices.Extensions;
 
-namespace Splitted_backend.ExternalServices
+namespace ExternalServices.EmailSender
 {
     public class EmailSender : IEmailSender
     {   
