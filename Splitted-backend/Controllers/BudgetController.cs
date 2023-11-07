@@ -116,7 +116,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.UserBudgets);
+                    (b => b.UserBudgets, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -154,7 +154,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.UserBudgets);
+                    (b => b.UserBudgets, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -193,7 +193,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with id {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.UserBudgets, b => b.Transactions);
+                    (b => b.UserBudgets, null), (b => b.Transactions, t => ((Transaction)t).User));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -266,7 +266,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with id {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.UserBudgets, b => b.Transactions);
+                    (b => b.UserBudgets, null), (b => b.Transactions, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -313,7 +313,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with id {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.Transactions, b => b.UserBudgets);
+                    (b => b.Transactions, t => ((Transaction)t).User), (b => b.UserBudgets, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -330,16 +330,6 @@ namespace Splitted_backend.Controllers
                 );
                 List<Transaction> transactionsFiltered = await transactionsFilter.GetFilteredTransactions(budget.Transactions);
                 List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
-
-                List<User> transactionsUsers = await userManager.FindMultipleByIdsWithIncludesAsync(
-                    transactionsFiltered.Select(tf => tf.UserId), u => u.Transactions);
-                foreach (TransactionGetDTO transactionFilteredDTO in transactionsFilteredDTO)
-                {
-                    User transactionUser = transactionsUsers.First(u => u.Transactions
-                        .Any(t => t.Id.Equals(transactionFilteredDTO.Id)));
-                    transactionFilteredDTO.UserName = transactionUser.UserName;
-                    transactionFilteredDTO.AvatarImage = transactionUser.AvatarImage;
-                }
 
                 return Ok(transactionsFilteredDTO);
             }

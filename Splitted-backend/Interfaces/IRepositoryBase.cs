@@ -19,6 +19,6 @@ namespace Splitted_backend.Interfaces
 
         Task<List<T>> GetEntitiesByCondition(Expression<Func<T, bool>> expression);
 
-        Task<T?> GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes);
+        Task<T?> GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include, Expression<Func<object, object>>? thenInclude)[] includes);
     }
 }

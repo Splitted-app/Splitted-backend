@@ -66,13 +66,13 @@ namespace Splitted_backend.Controllers
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets, u => u.Transactions);
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null), (u => u.Transactions, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
                 Guid budgetId = transaction.BudgetId;
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId), 
-                    b => b.Transactions);
+                    (b => b.Transactions, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -132,7 +132,7 @@ namespace Splitted_backend.Controllers
                     return NotFound("Some of transactions were not found.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.UserBudgets, u => u.Transactions);
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null), (u => u.Transactions, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 

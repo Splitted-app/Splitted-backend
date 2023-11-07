@@ -362,7 +362,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, u => u.Budgets);
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 

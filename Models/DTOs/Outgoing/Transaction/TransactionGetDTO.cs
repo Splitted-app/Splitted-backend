@@ -33,5 +33,7 @@ namespace Models.DTOs.Outgoing.Transaction
         public string UserName { get; set; }
 
         public string? AvatarImage { get; set; }
+
+        public TransactionDuplicatedGetDTO? DuplicatedTransaction { get; set; } 
     }
 }

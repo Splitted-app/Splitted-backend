@@ -16,7 +16,8 @@ namespace Splitted_backend.Repositories
             foreach (Transaction transactionAdded in transactionsAdded)
             {
                 Transaction? duplicatedTransaction = budgetTransactions
-                    .Where(bt => bt.Equals(transactionAdded) && bt.DuplicatedTransactionId is null)
+                    .Where(bt => bt.Equals(transactionAdded) && bt.DuplicatedTransactionId is null && 
+                        !transactionAdded.Id.Equals(bt.Id))
                     .FirstOrDefault();
 
                 if (duplicatedTransaction is not null)
