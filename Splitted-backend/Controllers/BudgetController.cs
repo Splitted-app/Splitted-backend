@@ -193,7 +193,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with id {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.UserBudgets);
+                    b => b.UserBudgets, b => b.Transactions);
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -219,6 +219,8 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Received csv file is invalid or doesn't match the bank.");
 
                 List<Transaction> entityTransactions = mapper.Map<List<Transaction>>(transactions);
+
+                repositoryWrapper.Transactions.FindDuplicates(entityTransactions, budget.Transactions);
                 budget.Transactions.AddRange(entityTransactions);
                 user.Transactions.AddRange(entityTransactions);
 
@@ -264,7 +266,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with id {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    b => b.UserBudgets);
+                    b => b.UserBudgets, b => b.Transactions);
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -273,6 +275,8 @@ namespace Splitted_backend.Controllers
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
                 Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
+
+                repositoryWrapper.Transactions.FindDuplicates(new List<Transaction> { transaction }, budget.Transactions);
                 budget.Transactions.Add(transaction);
                 user.Transactions.Add(transaction);
 

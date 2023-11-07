@@ -9,5 +9,19 @@ namespace Splitted_backend.Repositories
         public TransactionRepository(SplittedDbContext splittedDbContext) : base(splittedDbContext)
         { 
         }
+
+
+        public void FindDuplicates(List<Transaction> transactionsAdded, List<Transaction> budgetTransactions)
+        {
+            foreach (Transaction transactionAdded in transactionsAdded)
+            {
+                Transaction? duplicatedTransaction = budgetTransactions
+                    .Where(bt => bt.Equals(transactionAdded) && bt.DuplicatedTransactionId is null)
+                    .FirstOrDefault();
+
+                if (duplicatedTransaction is not null)
+                    transactionAdded.DuplicatedTransactionId = duplicatedTransaction.Id;
+            }
+        }
     }
 }
