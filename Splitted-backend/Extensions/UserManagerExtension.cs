@@ -35,8 +35,8 @@ namespace Splitted_backend.Extensions
             await userManager.AddClaimsAsync(user, userClaims);
         }
 
-        public static async Task<User?> FindByIdWithIncludesAsync(this UserManager<User> userManager, Guid userId, 
-            params Expression<Func<User, object>>[] userIncludes)
+        public static async Task<User?> FindByIdWithIncludesAsync(this UserManager<User> userManager, Guid userId,
+            params (Expression<Func<User, object>> include, Expression<Func<object, object>>? thenInclude)[] userIncludes)
         {
             return await userManager.Users
                 .IncludeMultiple(userIncludes)
@@ -44,7 +44,7 @@ namespace Splitted_backend.Extensions
         }
 
         public static async Task<List<User>> FindMultipleByIdsWithIncludesAsync(this UserManager<User> userManager, 
-            IEnumerable<Guid> userIds, params Expression<Func<User, object>>[] userIncludes)
+            IEnumerable<Guid> userIds, params (Expression<Func<User, object>> include, Expression<Func<object, object>>? thenInclude)[] userIncludes)
         {
             return await userManager.Users
                 .IncludeMultiple(userIncludes)

@@ -32,7 +32,7 @@ namespace Splitted_backend.Repositories
         public async Task<List<T>> GetEntitiesByCondition(Expression<Func<T, bool>> expression) 
             => await splittedDbContext.Set<T>().Where(expression).ToListAsync();
 
-        public async Task<T?> GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params Expression<Func<T, object>>[] includes)
+        public async Task<T?> GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include, Expression<Func<object, object>>? thenInclude)[] includes)
             => await splittedDbContext.Set<T>().IncludeMultiple(includes).FirstOrDefaultAsync(expression);
     }
 }

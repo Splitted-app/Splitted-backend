@@ -41,5 +41,24 @@ namespace Models.Entities
 
         public User User { get; set; } = null!;
 
+        public Guid? DuplicatedTransactionId { get; set; }
+
+        public Transaction? DuplicatedTransaction { get; set; } = null;
+
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Transaction transaction)
+                return transaction.Amount.Equals(Amount) && transaction.Currency.Equals(Currency) &&
+                    transaction.Date.Equals(Date) && transaction.Description.Equals(Description);
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return (Amount, Currency, Date, Description).GetHashCode();
+        }
+
     }
 }

@@ -18,7 +18,13 @@ namespace Splitted_backend.MapperProfiles
 
             CreateMap<Transaction, TransactionCreatedDTO>();
 
-            CreateMap<Transaction, TransactionGetDTO>();
+            CreateMap<Transaction, TransactionGetDTO>()
+                .ForMember(dest => dest.AvatarImage, opt => opt.MapFrom(src => src.User.AvatarImage))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
+
+            CreateMap<Transaction, TransactionDuplicatedGetDTO>()
+                .ForMember(dest => dest.AvatarImage, opt => opt.MapFrom(src => src.User.AvatarImage))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.User.UserName));
 
             CreateMap<TransactionPutDTO, Transaction>()
                 .ForMember(dest => dest.Amount, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Amount))))
