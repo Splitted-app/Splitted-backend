@@ -9,14 +9,18 @@ namespace ExternalServices.EmailSender
     {   
         private EmailConfiguration emailConfiguration { get; }
 
-        
+        private string templatesCatalogPath { get; }
+
+
         public EmailSender(EmailConfiguration emailConfiguration)
         {
             this.emailConfiguration = emailConfiguration;
+            this.templatesCatalogPath = Path.Combine(Directory.GetCurrentDirectory(),
+                "../ExternalServices/EmailSender/Templates");
         }
 
 
-        public async Task SendVerificationEmail(string token, string email)
+        public async Task SendConfirmationEmail(string token, string email)
         {
             Uri emailVerificationUri = new Uri(emailConfiguration.EmailVerificationUri);
             emailVerificationUri = emailVerificationUri.AddParameter("token", token);
@@ -30,26 +34,28 @@ namespace ExternalServices.EmailSender
                     Address = email
                 }
             };
-            string subject = "Confirmation email link";
-            string content = $"Click the link below to confirm your email: \n {emailVerificationUri}";
+            string subject = "Confirmation email";
+            string content = emailVerificationUri.ToString();
+            string htmlTemplate = Path.Combine(templatesCatalogPath, "ConfirmationEmailTemplate.html");
+            (string placeHolder, string actualValue) values = ("[splitted-confirm]", content);
 
-            await SendEmail(new EmailMessage(emailAddresses, subject, content));
+            await SendEmail(new EmailMessage(emailAddresses, subject, content, htmlTemplate, values));
         }
 
         private async Task SendEmail(EmailMessage emailMessage)
         {
-            MimeMessage message = CreateEmailMessage(emailMessage);
+            MimeMessage message = CreateMimeMessage(emailMessage);
             await SendAsync(message);
         }
 
-        private MimeMessage CreateEmailMessage(EmailMessage emailMessage)
+        private MimeMessage CreateMimeMessage(EmailMessage emailMessage)
         {
             MimeMessage message = new MimeMessage();
 
             message.From.Add(new MailboxAddress(emailConfiguration.DisplayName, emailConfiguration.From));
             message.To.AddRange(emailMessage.To);
             message.Subject = emailMessage.Subject;
-            message.Body = new TextPart(MimeKit.Text.TextFormat.Text) { Text = emailMessage.Content };
+            message.Body = ReadHtmlBody(emailMessage.HtmlPath, emailMessage.Values);
 
             return message;
         }
@@ -75,6 +81,19 @@ namespace ExternalServices.EmailSender
                     smtpClient.Dispose();
                 }
             }
+        }
+
+        private MimeEntity ReadHtmlBody(string htmlPath, (string placeHolder, string actualValue) values)
+        {
+            BodyBuilder bodyBuilder = new BodyBuilder();
+
+            using (StreamReader streamReader = File.OpenText(htmlPath))
+            {
+                bodyBuilder.HtmlBody = streamReader.ReadToEnd();
+            }
+
+            bodyBuilder.HtmlBody = bodyBuilder.HtmlBody.Replace(values.placeHolder, values.actualValue);
+            return bodyBuilder.ToMessageBody();
         }
     }
 }

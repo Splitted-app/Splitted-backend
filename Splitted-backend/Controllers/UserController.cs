@@ -86,7 +86,7 @@ namespace Splitted_backend.Controllers
                 await userManager.AddUserClaims(user);
 
                 string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-                await emailSender.SendVerificationEmail(token, user.Email);
+                await emailSender.SendConfirmationEmail(token, user.Email);
 
                 UserCreatedDTO userCreatedDTO = mapper.Map<UserCreatedDTO>(user);
                 return CreatedAtAction("RegisterUser", userCreatedDTO);
