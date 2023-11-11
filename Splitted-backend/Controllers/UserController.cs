@@ -86,7 +86,7 @@ namespace Splitted_backend.Controllers
                 await userManager.AddUserClaims(user);
 
                 string token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-                await emailSender.SendVerificationEmail(token, user.Email);
+                await emailSender.SendConfirmationEmail(token, user.Email);
 
                 UserCreatedDTO userCreatedDTO = mapper.Map<UserCreatedDTO>(user);
                 return CreatedAtAction("RegisterUser", userCreatedDTO);
@@ -173,7 +173,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 if (!Request.Cookies.TryGetValue("X-Refresh-Token", out string? refreshToken))
-                    return BadRequest("Refresh token not found.");
+                    return NotFound("Refresh token not found.");
 
                 User? userFound = await userManager.FindByRefreshTokenAsync(refreshToken!);
                 if (userFound is null || userFound.RefreshTokenExpiryTime <= DateTime.Now)
