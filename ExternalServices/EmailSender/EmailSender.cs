@@ -2,6 +2,7 @@
 using MailKit.Net.Smtp;
 using Models.EmailModels;
 using ExternalServices.Extensions;
+using MimeKit.Utils;
 
 namespace ExternalServices.EmailSender
 {
@@ -35,11 +36,11 @@ namespace ExternalServices.EmailSender
                 }
             };
             string subject = "Confirmation email";
-            string content = emailVerificationUri.ToString();
             string htmlTemplate = Path.Combine(templatesCatalogPath, "ConfirmationEmailTemplate.html");
-            (string placeHolder, string actualValue) values = ("[splitted-confirm]", content);
+            List<(string placeHolder, string actualValue)> values = new List<(string placeHolder, string actualValue)> 
+                { ("[confirmation-link]", emailVerificationUri.ToString()) };
 
-            await SendEmail(new EmailMessage(emailAddresses, subject, content, htmlTemplate, values));
+            await SendEmail(new EmailMessage(emailAddresses, subject, htmlTemplate, values));
         }
 
         private async Task SendEmail(EmailMessage emailMessage)
@@ -83,7 +84,7 @@ namespace ExternalServices.EmailSender
             }
         }
 
-        private MimeEntity ReadHtmlBody(string htmlPath, (string placeHolder, string actualValue) values)
+        private MimeEntity ReadHtmlBody(string htmlPath, List<(string placeHolder, string actualValue)> values)
         {
             BodyBuilder bodyBuilder = new BodyBuilder();
 
@@ -92,7 +93,10 @@ namespace ExternalServices.EmailSender
                 bodyBuilder.HtmlBody = streamReader.ReadToEnd();
             }
 
-            bodyBuilder.HtmlBody = bodyBuilder.HtmlBody.Replace(values.placeHolder, values.actualValue);
+            values.ForEach(v =>
+            {
+                bodyBuilder.HtmlBody = bodyBuilder.HtmlBody.Replace(v.placeHolder, v.actualValue);
+            });
             return bodyBuilder.ToMessageBody();
         }
     }
