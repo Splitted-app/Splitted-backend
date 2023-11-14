@@ -27,7 +27,8 @@ namespace Splitted_backend.Extensions
                     builder => builder
                     .WithOrigins(configuration.GetSection("AllowedOrigins").Get<string[]>())
                     .AllowAnyMethod()
-                    .AllowAnyHeader());
+                    .AllowAnyHeader()
+                    .AllowCredentials());
             });
         }
 

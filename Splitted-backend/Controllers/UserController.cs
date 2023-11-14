@@ -151,7 +151,7 @@ namespace Splitted_backend.Controllers
                 Response.Cookies.Append("X-Refresh-Token", user.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.None,
                     Secure = true
                 });
                 return Ok(userLoggedInDTO);
@@ -191,7 +191,7 @@ namespace Splitted_backend.Controllers
                 Response.Cookies.Append("X-Refresh-Token", userFound.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.None,
                     Secure = true,
                 });
                 return Ok(userLoggedInDTO);
