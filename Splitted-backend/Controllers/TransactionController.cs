@@ -16,6 +16,7 @@ using System.Security.Claims;
 using Models.DTOs.Incoming.Transaction;
 using Models.DTOs.Outgoing.Transaction;
 using Splitted_backend.Extensions;
+using AIService;
 
 namespace Splitted_backend.Controllers
 {
@@ -31,14 +32,17 @@ namespace Splitted_backend.Controllers
 
         private UserManager<User> userManager { get; }
 
+        private PythonExecuter pythonExecuter { get; }
+
 
         public TransactionController(ILogger<TransactionController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, 
-            UserManager<User> userManager)
+            UserManager<User> userManager, PythonExecuter pythonExecuter)
         {
             this.logger = logger;
             this.mapper = mapper;
             this.repositoryWrapper = repositoryWrapper;
             this.userManager = userManager;
+            this.pythonExecuter = pythonExecuter;
         }
 
 
@@ -161,6 +165,34 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside DeleteTransactions method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("ai-train")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Training suceeded")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Email not confirmed")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> TrainAIModel()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Transactions, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<TransactionAITrainDTO> transactionsAITrainDTO = mapper.Map<List<TransactionAITrainDTO>>(user.Transactions);
+                pythonExecuter.TrainAIModel(transactionsAITrainDTO);
+
+                return Ok();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside TrainAIModel method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

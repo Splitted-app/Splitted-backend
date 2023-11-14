@@ -1,4 +1,5 @@
-﻿using AuthenticationServer.Managers;
+﻿using AIService;
+using AuthenticationServer.Managers;
 using AutoMapper;
 using ExternalServices.EmailSender;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

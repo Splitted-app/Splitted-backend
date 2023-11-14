@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthenticationServer", "AuthenticationServer\AuthenticationServer.csproj", "{603CF80D-8653-4C20-B30B-B035CE7BB81A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExternalServices", "ExternalServices\ExternalServices.csproj", "{B948C21A-9C5D-42BC-BD39-F5CD326EFC99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExternalServices", "ExternalServices\ExternalServices.csproj", "{B948C21A-9C5D-42BC-BD39-F5CD326EFC99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIService", "AIService\AIService.csproj", "{4C969CFB-595D-4BEC-8A7E-9765F4A84D8F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{B948C21A-9C5D-42BC-BD39-F5CD326EFC99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B948C21A-9C5D-42BC-BD39-F5CD326EFC99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B948C21A-9C5D-42BC-BD39-F5CD326EFC99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C969CFB-595D-4BEC-8A7E-9765F4A84D8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C969CFB-595D-4BEC-8A7E-9765F4A84D8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C969CFB-595D-4BEC-8A7E-9765F4A84D8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C969CFB-595D-4BEC-8A7E-9765F4A84D8F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AIService\AIService.csproj" />
     <ProjectReference Include="..\AuthenticationServer\AuthenticationServer.csproj" />
     <ProjectReference Include="..\CsvConversion\CsvConversion.csproj" />
     <ProjectReference Include="..\ExternalServices\ExternalServices.csproj" />

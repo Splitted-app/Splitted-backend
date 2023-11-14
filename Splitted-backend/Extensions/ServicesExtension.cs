@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using AuthenticationServer.Managers;
 using Models.EmailModels;
 using ExternalServices.EmailSender;
+using AIService;
 
 namespace Splitted_backend.Extensions
 {
@@ -20,6 +21,7 @@ namespace Splitted_backend.Extensions
             services.AddSingleton(configuration
                 .GetSection("emailConfiguration")
                 .Get<EmailConfiguration>());
+            services.AddSingleton<PythonExecuter>();
 
             services.AddCors(options =>
             {

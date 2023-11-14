@@ -33,6 +33,9 @@ namespace Splitted_backend.MapperProfiles
                 .ForMember(dest => dest.Description, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Description))))
                 .ForMember(dest => dest.TransactionType, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.TransactionType))))
                 .ForMember(dest => dest.UserCategory, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.UserCategory))));
+
+            CreateMap<Transaction, TransactionAITrainDTO>()
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToString("yyyy-MM-dd")));
         }
     }
 }
