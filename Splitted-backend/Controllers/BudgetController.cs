@@ -296,7 +296,7 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{budgetId}/transactions")]
-        [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(List<TransactionGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(BudgetTransactionsGetDTO))]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
@@ -331,7 +331,19 @@ namespace Splitted_backend.Controllers
                 List<Transaction> transactionsFiltered = await transactionsFilter.GetFilteredTransactions(budget.Transactions);
                 List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
 
-                return Ok(transactionsFilteredDTO);
+
+                BudgetTransactionsGetDTO budgetTransactionsGetDTO = new BudgetTransactionsGetDTO
+                {
+                    Transactions = transactionsFilteredDTO,
+                    Income = transactionsFiltered
+                            .Where(tf => tf.Amount > 0)
+                            .Aggregate(0M, (cur, next) => cur + next.Amount),
+                    Expenses = transactionsFiltered
+                            .Where(tf => tf.Amount < 0)
+                            .Aggregate(0M, (cur, next) => cur + next.Amount),
+
+                };
+                return Ok(budgetTransactionsGetDTO);
             }
             catch (Exception exception)
             {
