@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 using Models.DTOs.Outgoing.Transaction;
 using Models.Entities;
 using Python.Runtime;
@@ -19,10 +20,9 @@ namespace AIService
         private string mainAIModule { get; }
 
 
-        public PythonExecuter()
+        public PythonExecuter(IConfiguration configuration)
         {
-            // ../usr/lib/x86_64-linux-gnu/libpython3.9.so.1.0
-            pythonDllPath = Path.Combine(Directory.GetCurrentDirectory(), "../AIService/PythonDll/python310.dll");
+            pythonDllPath = Path.Combine(Directory.GetCurrentDirectory(), configuration["DllPath"]);
             aiCatalogPath = Path.Combine(Directory.GetCurrentDirectory(), "../AIService/AIFiles");
             mainAIModule = Path.GetFileNameWithoutExtension(Path.Combine(aiCatalogPath, "main.py"));
             InitializeExecuter();
@@ -52,7 +52,7 @@ namespace AIService
 
         private void InitializeExecuter()
         {
-            Environment.SetEnvironmentVariable("PYTHONNET_PYDLL", pythonDllPath);
+            Runtime.PythonDLL = pythonDllPath;
             PythonEngine.Initialize();
             PythonEngine.BeginAllowThreads();
         }
