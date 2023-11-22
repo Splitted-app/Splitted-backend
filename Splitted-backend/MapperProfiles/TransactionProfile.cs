@@ -36,6 +36,9 @@ namespace Splitted_backend.MapperProfiles
 
             CreateMap<Transaction, TransactionAITrainDTO>()
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToString("yyyy-MM-dd")));
+
+            CreateMap<TransactionCsv, TransactionAITrainDTO>()
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToString("yyyy-MM-dd")));
         }
     }
 }

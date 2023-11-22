@@ -170,8 +170,9 @@ namespace Splitted_backend.Controllers
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPost("ai-train")]
+        [HttpPost("train-ai")]
         [SwaggerResponse(StatusCodes.Status200OK, "Training suceeded")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Not enough transactions")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "Email not confirmed")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
@@ -185,14 +186,17 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
+                if (user.Transactions.Count == 0)
+                    return BadRequest("To train AI model you must have at least 1 transaction.");
+
                 List<TransactionAITrainDTO> transactionsAITrainDTO = mapper.Map<List<TransactionAITrainDTO>>(user.Transactions);
-                pythonExecuter.TrainAIModel(transactionsAITrainDTO);
+                pythonExecuter.TrainModel(transactionsAITrainDTO, userId.ToString());
 
                 return Ok();
             }
             catch (Exception exception)
             {
-                logger.LogError($"Error occurred inside TrainAIModel method. {exception}.");
+                logger.LogError($"Error occurred inside TrainModel method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
