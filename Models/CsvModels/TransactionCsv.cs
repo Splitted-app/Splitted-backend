@@ -20,5 +20,7 @@ namespace Models.CsvModels
         public string? BankCategory { get; set; }
 
         public string? AutoCategory { get; set; }
+
+        public string? UserCategory { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using AIService;
+using AutoMapper;
 using CsvConversion.Readers;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -43,13 +44,17 @@ namespace Splitted_backend.Controllers
 
         private UserManager<User> userManager { get; }
 
+        private PythonExecuter pythonExecuter { get; }
 
-        public BudgetController(ILogger<BudgetController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, UserManager<User> userManager)
+
+        public BudgetController(ILogger<BudgetController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, 
+            UserManager<User> userManager, PythonExecuter pythonExecuter)
         {
             this.logger = logger;
             this.mapper = mapper;
             this.repositoryWrapper = repositoryWrapper;
             this.userManager = userManager;
+            this.pythonExecuter = pythonExecuter;
         }
 
 
@@ -214,17 +219,20 @@ namespace Splitted_backend.Controllers
                 else
                     return BadRequest("Invalid bank");
 
-                List<TransactionCsv>? transactions = csvReader.GetTransactions();
-                if (transactions is null || transactions.Count == 0)
+                List<TransactionCsv>? importedTransactions = csvReader.GetTransactions();
+                if (importedTransactions is null || importedTransactions.Count == 0)
                     return BadRequest("Received csv file is invalid or doesn't match the bank.");
 
-                List<Transaction> entityTransactions = mapper.Map<List<Transaction>>(transactions);
+                List<TransactionAITrainDTO> importedAiTransactions = mapper.Map<List<TransactionAITrainDTO>>(importedTransactions);
+                pythonExecuter.CategorizeTransactions(importedTransactions, importedAiTransactions, userId.ToString());
+
+                List<Transaction> entityTransactions = mapper.Map<List<Transaction>>(importedTransactions);
 
                 repositoryWrapper.Transactions.FindDuplicates(entityTransactions, budget.Transactions);
                 budget.Transactions.AddRange(entityTransactions);
                 user.Transactions.AddRange(entityTransactions);
 
-                decimal balanceDifference = transactions.Aggregate(0M, (prev, current) => prev + current.Amount);
+                decimal balanceDifference = importedTransactions.Aggregate(0M, (prev, current) => prev + current.Amount);
                 budget.BudgetBalance += balanceDifference;
 
                 repositoryWrapper.Budgets.Update(budget);
