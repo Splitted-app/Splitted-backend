@@ -73,7 +73,12 @@ namespace CsvConversion.Readers
                 SetConverterOptions<DateTime>(csvReader, formats);
 
                 if (!TrySkipToHeaderRecord(csvReader))
+                {
+                    csvReader.Dispose();
+                    File.Delete(fileName);
                     return transactions;
+                }
+                    
 
                 while (csvReader.Read() && !DetermineEndOfTransactions(csvReader))
                 {
