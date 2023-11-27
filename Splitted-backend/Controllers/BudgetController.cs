@@ -305,6 +305,7 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{budgetId}/transactions")]
         [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(BudgetTransactionsGetDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
