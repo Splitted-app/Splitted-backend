@@ -16,6 +16,7 @@ using Models.Enums;
 using Splitted_backend.EntitiesFilters;
 using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
+using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
@@ -330,27 +331,21 @@ namespace Splitted_backend.Controllers
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
-                TransactionsFilter transactionsFilter = new TransactionsFilter(
+                TransactionsFilter transactionsFilter = new TransactionsFilter (
                     dates: (dateFrom, dateTo),
                     amounts: (minAmount, maxAmount),
                     category: category,
-                    userName: userName,
-                    userManager: userManager
+                    userName: userName
                 );
-                List<Transaction> transactionsFiltered = await transactionsFilter.GetFilteredTransactions(budget.Transactions);
+                List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
                 List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
 
-
+                (decimal income, decimal expenses) = InsightsManager.GetIncomeExpenses(transactionsFiltered);
                 BudgetTransactionsGetDTO budgetTransactionsGetDTO = new BudgetTransactionsGetDTO
                 {
                     Transactions = transactionsFilteredDTO,
-                    Income = transactionsFiltered
-                            .Where(tf => tf.Amount > 0)
-                            .Aggregate(0M, (cur, next) => cur + next.Amount),
-                    Expenses = transactionsFiltered
-                            .Where(tf => tf.Amount < 0)
-                            .Aggregate(0M, (cur, next) => cur + next.Amount),
-
+                    Income = income,
+                    Expenses = expenses,
                 };
                 return Ok(budgetTransactionsGetDTO);
             }
