@@ -171,7 +171,7 @@ namespace Splitted_backend.Controllers
 
                 TransactionsFilter transactionsFilter = new TransactionsFilter(
                     dates: (dateFrom, dateTo),
-                    amounts: (null, null),
+                    amounts: (null, 0),
                     category: category
                 );
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
@@ -184,6 +184,56 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside GetExpensesHistogram method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("{budgetId}/summary")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Income and expenses returned", typeof(InsightsSummaryDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetSummary([FromRoute, BindRequired] Guid budgetId,
+            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] string? category,
+            [FromQuery] int binRange = 50)
+        {
+            try
+            {
+                if (binRange <= 0)
+                    return BadRequest("Bin range has to be positive.");
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, null), (b => b.UserBudgets, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                TransactionsFilter transactionsFilter = new TransactionsFilter(
+                    dates: (dateFrom, dateTo),
+                    amounts: (null, 0),
+                    category: category
+                );
+                List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
+
+                InsightsSummaryDTO summaryDTO = InsightsManager.GetExpensesSummary(transactionsFiltered);
+
+                return Ok(summaryDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetExpensesSummary method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

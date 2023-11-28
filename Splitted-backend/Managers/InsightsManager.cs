@@ -3,6 +3,7 @@ using Models.DTOs.Outgoing.Insights;
 using Models.Entities;
 using Org.BouncyCastle.Utilities.Collections;
 using Splitted_backend.EntitiesFilters;
+using Splitted_backend.Extensions;
 
 namespace Splitted_backend.Managers
 {
@@ -70,6 +71,23 @@ namespace Splitted_backend.Managers
             });
             
             return expensesHistogramDTOs;
+        }
+
+        public static InsightsSummaryDTO GetExpensesSummary(List<Transaction> transactions)
+        {
+            List<decimal> transactionsAmounts = transactions.Select(t => Math.Abs(t.Amount))
+                .ToList();
+            transactionsAmounts.Sort();
+
+            return new InsightsSummaryDTO
+            {
+                MaxValue = transactionsAmounts.Max(),
+                MinValue = transactionsAmounts.Min(),
+                Mean = transactionsAmounts.Average(),
+                Q1 = transactionsAmounts.Percentile(25M),
+                Median = transactionsAmounts.Percentile(50M),
+                Q3 = transactionsAmounts.Percentile(75M),
+            };
         }
     }
 }
