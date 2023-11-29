@@ -49,8 +49,8 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> GetIncomeExpenses([FromRoute, BindRequired] Guid budgetId, [FromQuery] DateTime? dateFrom,
-            [FromQuery] DateTime? dateTo, [FromQuery] string? category)
+        public async Task<IActionResult> GetIncomeExpenses([FromRoute, BindRequired] Guid budgetId, 
+            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] string? category)
         {
             try
             {
@@ -75,18 +75,62 @@ namespace Splitted_backend.Controllers
                 );
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
 
-                (decimal income, decimal expenses) = InsightsManager.GetIncomeExpenses(transactionsFiltered);
-                InsightsIncomeExpensesDTO insightsIncomeExpensesDTO = new InsightsIncomeExpensesDTO
-                {
-                    Income = income,
-                    Expenses = expenses,
-                };
+                InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager
+                    .GetIncomeExpenses(transactionsFiltered);
 
-                return Ok(insightsIncomeExpensesDTO);
+                return Ok(incomeExpensesDTO);
             }
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside GetIncomeExpenses method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("{budgetId}/balance-history")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Income and expenses returned", typeof(List<InsightsBalanceHistoryDTO>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetBalanceHistory([FromRoute, BindRequired] Guid budgetId, 
+            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, 
+            [FromQuery, BindRequired] InsightsDeltaTimeEnum deltaTime)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, null), (b => b.UserBudgets, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                dateFrom = dateFrom is null || dateFrom < budget.CreationDate ? budget.CreationDate : dateFrom;
+                TransactionsFilter transactionsFilter = new TransactionsFilter(
+                    dates: (dateFrom, dateTo),
+                    amounts: (null, null)
+                );
+                List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
+
+                List<InsightsBalanceHistoryDTO> balanceHistoryDTOs = InsightsManager
+                    .GetBalanceHistory(transactionsFiltered, deltaTime, budget.BudgetBalance);
+
+                return Ok(balanceHistoryDTOs);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetBalanceHistory method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
@@ -174,13 +218,13 @@ namespace Splitted_backend.Controllers
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
 
                 List<InsightsIncomeExpensesOverTimeDTO> incomeExpensesOverTimeDTOs = InsightsManager
-                    .GetIncomeExpensesOverTime(transactionsFiltered, dateFrom, dateTo, deltaTime);
+                    .GetIncomeExpensesOverTime(transactionsFiltered, deltaTime);
 
                 return Ok(incomeExpensesOverTimeDTOs);
             }
             catch (Exception exception)
             {
-                logger.LogError($"Error occurred inside GetExpensesBreakdownByCategories method. {exception}.");
+                logger.LogError($"Error occurred inside GetIncomeExpensesOverTime method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

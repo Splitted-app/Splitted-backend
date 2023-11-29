@@ -13,8 +13,6 @@ namespace Models.DTOs.Incoming.Transaction
     public class TransactionPutDTO
     {
         private decimal? amount;
-        private string? currency;
-        private DateTime? date;
         private string? description;
         private TransactionTypeEnum? transactionType;
         private string? userCategory;
@@ -33,26 +31,6 @@ namespace Models.DTOs.Incoming.Transaction
             {
                 amount = value;
                 setProperties.Add(nameof(Amount));
-            }
-        }
-
-        public string? Currency
-        {
-            get => currency;
-            set
-            {
-                currency = value;
-                setProperties.Add(nameof(Currency));
-            }
-        }
-
-        public DateTime? Date
-        {
-            get => date;
-            set
-            {
-                date = value;
-                setProperties.Add(nameof(Date));
             }
         }
 

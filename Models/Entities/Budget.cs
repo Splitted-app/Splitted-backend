@@ -23,6 +23,9 @@ namespace Models.Entities
         [Column(TypeName = "money")]
         public decimal BudgetBalance { get; set; }
 
+        public DateTime CreationDate { get; set; }
+
+
 
         public List<User> Users { get; set; } = new();
 

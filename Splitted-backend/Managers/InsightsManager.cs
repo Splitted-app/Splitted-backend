@@ -1,23 +1,79 @@
-﻿using CsvHelper.TypeConversion;
-using Models.DTOs.Outgoing.Insights;
+﻿using Models.DTOs.Outgoing.Insights;
 using Models.Entities;
 using Models.Enums;
-using Org.BouncyCastle.Utilities.Collections;
-using Splitted_backend.EntitiesFilters;
 using Splitted_backend.Extensions;
 
 namespace Splitted_backend.Managers
 {
     public static class InsightsManager
     {
-        public static (decimal income, decimal expenses) GetIncomeExpenses(List<Transaction> transactions)
+        public static InsightsIncomeExpensesDTO GetIncomeExpenses(List<Transaction> transactions)
         {
             decimal income = transactions.Where(t => t.Amount > 0)
                             .Aggregate(0M, (cur, next) => cur + next.Amount);
             decimal expenses = transactions.Where(t => t.Amount < 0)
                             .Aggregate(0M, (cur, next) => cur + next.Amount);
 
-            return (income, expenses);
+            return new InsightsIncomeExpensesDTO
+            {
+                Income = income,
+                Expenses = expenses,
+            };
+        }
+
+        public static List<InsightsBalanceHistoryDTO> GetBalanceHistory(List<Transaction> transactions,
+            InsightsDeltaTimeEnum deltaTime, decimal budgetBalance)
+        {
+            List<InsightsBalanceHistoryDTO> balanceHistoryDTOs = new List<InsightsBalanceHistoryDTO>();
+            decimal balanceDifference = 0M;
+
+            if (deltaTime.Equals(InsightsDeltaTimeEnum.Day))
+            {
+                List<IGrouping<DateTime, Transaction>> groupedTransactionsByDate = transactions
+                    .GroupBy(t => t.Date)
+                    .ToList();
+
+                groupedTransactionsByDate
+                    .OrderByDescending(gt => gt.Key)
+                    .ToList()
+                    .ForEach(gt =>
+                {
+                    List<Transaction> transactionsByDate = gt.ToList();
+                    balanceHistoryDTOs.Add(new InsightsBalanceHistoryDTO
+                    {
+                        Date = gt.Key.ToString("yyyy-MM-dd"),
+                        Balance = budgetBalance + balanceDifference,
+                    });
+
+                    InsightsIncomeExpensesDTO incomeExpensesDTO = GetIncomeExpenses(transactionsByDate);
+                    balanceDifference -= (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
+                });
+            }
+            else
+            {
+                List<IGrouping<(int year, int month), Transaction>> groupedTransactionsByMonth = transactions
+                    .GroupBy(t => (t.Date.Year, t.Date.Month))
+                    .ToList();
+
+                groupedTransactionsByMonth
+                    .OrderByDescending(gt => gt.Key)
+                    .ToList()
+                    .ForEach(gt =>
+                    {
+                        List<Transaction> transactionsByMonth = gt.ToList();
+                        balanceHistoryDTOs.Add(new InsightsBalanceHistoryDTO
+                        {
+                            Date = $"{gt.Key.year}-{gt.Key.month.ToString("D2")}",
+                            Balance = budgetBalance + balanceDifference,
+                        });
+
+                        InsightsIncomeExpensesDTO incomeExpensesDTO = GetIncomeExpenses(transactionsByMonth);
+                        balanceDifference -= (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
+                    });
+            }
+
+            return balanceHistoryDTOs.OrderBy(bh => bh.Date)
+                .ToList();
         }
 
         public static List<InsightsCategoryExpensesDTO> GetExpensesBreakdownByCategories(List<Transaction> transactions)
@@ -45,7 +101,7 @@ namespace Splitted_backend.Managers
                 categoryExpensesDTOs.Add(new InsightsCategoryExpensesDTO
                 {
                     CategoryName = category,
-                    Expenses = GetIncomeExpenses(transactionFiltered).expenses,
+                    Expenses = GetIncomeExpenses(transactionFiltered).Expenses,
                 });
             }
 
@@ -53,7 +109,7 @@ namespace Splitted_backend.Managers
         }
 
         public static List<InsightsIncomeExpensesOverTimeDTO> GetIncomeExpensesOverTime(List<Transaction> transactions, 
-            DateTime? dateFrom, DateTime? dateTo, InsightsDeltaTimeEnum deltaTime)
+            InsightsDeltaTimeEnum deltaTime)
         {
             List<InsightsIncomeExpensesOverTimeDTO> incomeExpensesOverTimeDTOs = new List<InsightsIncomeExpensesOverTimeDTO>();
 
@@ -66,32 +122,32 @@ namespace Splitted_backend.Managers
                 groupedTransactionsByDate.ForEach(gt =>
                 {
                     List<Transaction> transactionsByDate = gt.ToList();
-                    (decimal income, decimal expenses) = GetIncomeExpenses(transactionsByDate);
+                    InsightsIncomeExpensesDTO incomeExpensesDTO = GetIncomeExpenses(transactionsByDate);
 
                     incomeExpensesOverTimeDTOs.Add(new InsightsIncomeExpensesOverTimeDTO
                     {
-                        Date = gt.Key.ToString(),
-                        Expenses = expenses,
-                        Income = income,
+                        Date = gt.Key.ToString("yyyy-MM-dd"),
+                        Expenses = incomeExpensesDTO.Expenses,
+                        Income = incomeExpensesDTO.Income,
                     });
                 });
             }
             else
             {
-                List<IGrouping<(int month, int year), Transaction>> groupedTransactionByMonth = transactions
-                    .GroupBy(t => (t.Date.Month, t.Date.Year))
+                List<IGrouping<(int year, int month), Transaction>> groupedTransactionByMonth = transactions
+                    .GroupBy(t => (t.Date.Year, t.Date.Month))
                     .ToList();
 
                 groupedTransactionByMonth.ForEach(gt =>
                 {
-                    List<Transaction> transactionsByDate = gt.ToList();
-                    (decimal income, decimal expenses) = GetIncomeExpenses(transactionsByDate);
+                    List<Transaction> transactionsByMonth = gt.ToList();
+                    InsightsIncomeExpensesDTO incomeExpensesDTO = GetIncomeExpenses(transactionsByMonth);
 
                     incomeExpensesOverTimeDTOs.Add(new InsightsIncomeExpensesOverTimeDTO
                     {
                         Date = $"{gt.Key.year}-{gt.Key.month.ToString("D2")}",
-                        Expenses = expenses,
-                        Income = income,
+                        Expenses = incomeExpensesDTO.Expenses,
+                        Income = incomeExpensesDTO.Income,
                     });
                 });
             }

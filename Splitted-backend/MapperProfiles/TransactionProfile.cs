@@ -28,8 +28,6 @@ namespace Splitted_backend.MapperProfiles
 
             CreateMap<TransactionPutDTO, Transaction>()
                 .ForMember(dest => dest.Amount, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Amount))))
-                .ForMember(dest => dest.Currency, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Currency))))
-                .ForMember(dest => dest.Date, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Date))))
                 .ForMember(dest => dest.Description, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Description))))
                 .ForMember(dest => dest.TransactionType, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.TransactionType))))
                 .ForMember(dest => dest.UserCategory, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.UserCategory))));

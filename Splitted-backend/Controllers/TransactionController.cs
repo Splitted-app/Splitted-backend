@@ -17,6 +17,8 @@ using Models.DTOs.Incoming.Transaction;
 using Models.DTOs.Outgoing.Transaction;
 using Splitted_backend.Extensions;
 using AIService;
+using Splitted_backend.Managers;
+using Models.DTOs.Outgoing.Insights;
 
 namespace Splitted_backend.Controllers
 {
@@ -84,7 +86,7 @@ namespace Splitted_backend.Controllers
                 if (!ifTransactionValid)
                     return StatusCode(403, $"Transaction doesn't belong to the user with id: {userId}.");
                 
-                if (transactionPutDTO.Amount is not null)
+                if (transactionPutDTO.Amount is not null && transaction.Date >= budget.CreationDate)
                 {
                     decimal balanceDifference = (decimal)transactionPutDTO.Amount - transaction.Amount;
                     budget.BudgetBalance += balanceDifference;
@@ -153,8 +155,10 @@ namespace Splitted_backend.Controllers
                 if (!ifTransactionsValid)
                     return StatusCode(403, $"Some of transactions don't belong to the user with id: {userId}.");
 
-                decimal balanceDifference = transactions.Aggregate(0M, (prev, current) => prev + current.Amount);
-                budget.BudgetBalance -= balanceDifference;
+                InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactions
+                    .Where(t => t.Date >= budget.CreationDate)
+                    .ToList());
+                budget.BudgetBalance -= (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
 
                 repositoryWrapper.Transactions.DeleteMultiple(transactions);
                 repositoryWrapper.Budgets.Update(budget);

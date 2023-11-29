@@ -10,6 +10,7 @@ using Models.CsvModels;
 using Models.DTOs.Incoming.Budget;
 using Models.DTOs.Incoming.Transaction;
 using Models.DTOs.Outgoing.Budget;
+using Models.DTOs.Outgoing.Insights;
 using Models.DTOs.Outgoing.Transaction;
 using Models.Entities;
 using Models.Enums;
@@ -233,8 +234,10 @@ namespace Splitted_backend.Controllers
                 budget.Transactions.AddRange(entityTransactions);
                 user.Transactions.AddRange(entityTransactions);
 
-                decimal balanceDifference = importedTransactions.Aggregate(0M, (prev, current) => prev + current.Amount);
-                budget.BudgetBalance += balanceDifference;
+                InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(entityTransactions
+                    .Where(t => t.Date >= budget.CreationDate)
+                    .ToList());
+                budget.BudgetBalance += (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
 
                 repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
@@ -289,7 +292,9 @@ namespace Splitted_backend.Controllers
                 budget.Transactions.Add(transaction);
                 user.Transactions.Add(transaction);
 
-                budget.BudgetBalance += transaction.Amount;
+                if (transaction.Date >= budget.CreationDate)
+                    budget.BudgetBalance += transaction.Amount;
+
                 repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
 
@@ -340,12 +345,12 @@ namespace Splitted_backend.Controllers
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
                 List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
 
-                (decimal income, decimal expenses) = InsightsManager.GetIncomeExpenses(transactionsFiltered);
+                InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactionsFiltered);
                 BudgetTransactionsGetDTO budgetTransactionsGetDTO = new BudgetTransactionsGetDTO
                 {
                     Transactions = transactionsFilteredDTO,
-                    Income = income,
-                    Expenses = expenses,
+                    Income = incomeExpensesDTO.Income,
+                    Expenses = incomeExpensesDTO.Expenses,
                 };
                 return Ok(budgetTransactionsGetDTO);
             }
