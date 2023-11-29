@@ -290,14 +290,10 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> GetSummary([FromRoute, BindRequired] Guid budgetId,
-            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] string? category,
-            [FromQuery] int binRange = 50)
+            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] string? category)
         {
             try
             {
-                if (binRange <= 0)
-                    return BadRequest("Bin range has to be positive.");
-
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
                 User? user = await userManager.FindByIdAsync(userId.ToString());
                 if (user is null)
