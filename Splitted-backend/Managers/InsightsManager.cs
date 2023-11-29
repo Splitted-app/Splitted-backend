@@ -1,6 +1,7 @@
 ﻿using CsvHelper.TypeConversion;
 using Models.DTOs.Outgoing.Insights;
 using Models.Entities;
+using Models.Enums;
 using Org.BouncyCastle.Utilities.Collections;
 using Splitted_backend.EntitiesFilters;
 using Splitted_backend.Extensions;
@@ -49,6 +50,53 @@ namespace Splitted_backend.Managers
             }
 
             return categoryExpensesDTOs;
+        }
+
+        public static List<InsightsIncomeExpensesOverTimeDTO> GetIncomeExpensesOverTime(List<Transaction> transactions, 
+            DateTime? dateFrom, DateTime? dateTo, InsightsDeltaTimeEnum deltaTime)
+        {
+            List<InsightsIncomeExpensesOverTimeDTO> incomeExpensesOverTimeDTOs = new List<InsightsIncomeExpensesOverTimeDTO>();
+
+            if (deltaTime.Equals(InsightsDeltaTimeEnum.Day))
+            {
+                List<IGrouping<DateTime, Transaction>> groupedTransactionsByDate = transactions
+                    .GroupBy(t => t.Date)
+                    .ToList();
+
+                groupedTransactionsByDate.ForEach(gt =>
+                {
+                    List<Transaction> transactionsByDate = gt.ToList();
+                    (decimal income, decimal expenses) = GetIncomeExpenses(transactionsByDate);
+
+                    incomeExpensesOverTimeDTOs.Add(new InsightsIncomeExpensesOverTimeDTO
+                    {
+                        Date = gt.Key.ToString(),
+                        Expenses = expenses,
+                        Income = income,
+                    });
+                });
+            }
+            else
+            {
+                List<IGrouping<(int month, int year), Transaction>> groupedTransactionByMonth = transactions
+                    .GroupBy(t => (t.Date.Month, t.Date.Year))
+                    .ToList();
+
+                groupedTransactionByMonth.ForEach(gt =>
+                {
+                    List<Transaction> transactionsByDate = gt.ToList();
+                    (decimal income, decimal expenses) = GetIncomeExpenses(transactionsByDate);
+
+                    incomeExpensesOverTimeDTOs.Add(new InsightsIncomeExpensesOverTimeDTO
+                    {
+                        Date = $"{gt.Key.year}-{gt.Key.month.ToString("D2")}",
+                        Expenses = expenses,
+                        Income = income,
+                    });
+                });
+            }
+
+            return incomeExpensesOverTimeDTOs;
         }
 
         public static List<InsightsExpensesHistogramDTO> GetExpensesHistogram(List<Transaction> transactions, int binRange)

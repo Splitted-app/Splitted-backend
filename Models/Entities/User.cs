@@ -10,6 +10,8 @@ namespace Splitted_backend.Models.Entities
     {
         public string? AvatarImage { get; set; }
 
+        public DateTime CreationDate { get; set; }
+
         public string? RefreshToken { get; set; }
 
         public DateTime? RefreshTokenExpiryTime { get; set; }

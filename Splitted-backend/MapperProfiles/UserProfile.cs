@@ -9,7 +9,8 @@ namespace Splitted_backend.MapperProfiles
     {
         public UserProfile()
         {
-            CreateMap<UserRegisterDTO, User>();
+            CreateMap<UserRegisterDTO, User>()
+                .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"))));
 
             CreateMap<User, UserCreatedDTO>();
 
