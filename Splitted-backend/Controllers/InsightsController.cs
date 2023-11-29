@@ -145,7 +145,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> GetExpensesBreakdownByCategories([FromRoute, BindRequired] Guid budgetId, 
-            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo, [FromQuery] string? category)
+            [FromQuery] DateTime? dateFrom, [FromQuery] DateTime? dateTo)
         {
             try
             {
@@ -165,8 +165,7 @@ namespace Splitted_backend.Controllers
 
                 TransactionsFilter transactionsFilter = new TransactionsFilter(
                     dates: (dateFrom, dateTo),
-                    amounts: (null, null),
-                    category: category
+                    amounts: (null, 0)
                 );
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
 

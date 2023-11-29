@@ -16,5 +16,10 @@ namespace CsvConversion.Extensions
             return string.Join(" ", splittedText)
                 .Trim();
         }
+
+        public static string FirstCharToUpper(this string text)
+        {
+            return string.Concat(text[0].ToString().ToUpper(), text.Substring(1));
+        }
     }
 }

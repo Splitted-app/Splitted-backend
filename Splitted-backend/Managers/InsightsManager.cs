@@ -1,4 +1,6 @@
-﻿using Models.DTOs.Outgoing.Insights;
+﻿using CsvConversion.Extensions;
+using Microsoft.IdentityModel.Tokens;
+using Models.DTOs.Outgoing.Insights;
 using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
@@ -78,29 +80,31 @@ namespace Splitted_backend.Managers
 
         public static List<InsightsCategoryExpensesDTO> GetExpensesBreakdownByCategories(List<Transaction> transactions)
         {
-            HashSet<string?> categories = new HashSet<string?>();
+            HashSet<string> categories = new HashSet<string>();
             List<InsightsCategoryExpensesDTO> categoryExpensesDTOs = new List<InsightsCategoryExpensesDTO>();   
 
-            transactions.ForEach(t => categories.Add(t.UserCategory));
-            foreach (string? category in categories)
+            transactions.ForEach(t => categories.Add(string.IsNullOrWhiteSpace(t.UserCategory) ? "uncategorized" 
+                : t.UserCategory.ToLower().Beutify()));
+
+            foreach (string category in categories)
             {
                 List<Transaction> transactionFiltered = transactions.Where(t =>
                 {
-                    if (category is null)
+                    if (category.Equals("uncategorized"))
                     {
-                        if (t.UserCategory is null) return true;
+                        if (string.IsNullOrWhiteSpace(t.UserCategory)) return true;
                         else return false;
                     }
                     else
                     {
-                        return category.Equals(t.UserCategory);
+                        return category.Equals(t.UserCategory is null ? null : t.UserCategory.ToLower().Beutify());
                     }
                 })
                 .ToList();
 
                 categoryExpensesDTOs.Add(new InsightsCategoryExpensesDTO
                 {
-                    CategoryName = category,
+                    CategoryName = category.FirstCharToUpper(),
                     Expenses = GetIncomeExpenses(transactionFiltered).Expenses,
                 });
             }
