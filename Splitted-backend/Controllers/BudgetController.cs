@@ -10,12 +10,14 @@ using Models.CsvModels;
 using Models.DTOs.Incoming.Budget;
 using Models.DTOs.Incoming.Transaction;
 using Models.DTOs.Outgoing.Budget;
+using Models.DTOs.Outgoing.Insights;
 using Models.DTOs.Outgoing.Transaction;
 using Models.Entities;
 using Models.Enums;
 using Splitted_backend.EntitiesFilters;
 using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
+using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
@@ -232,8 +234,10 @@ namespace Splitted_backend.Controllers
                 budget.Transactions.AddRange(entityTransactions);
                 user.Transactions.AddRange(entityTransactions);
 
-                decimal balanceDifference = importedTransactions.Aggregate(0M, (prev, current) => prev + current.Amount);
-                budget.BudgetBalance += balanceDifference;
+                InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(entityTransactions
+                    .Where(t => t.Date >= budget.CreationDate)
+                    .ToList());
+                budget.BudgetBalance += (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
 
                 repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
@@ -288,7 +292,9 @@ namespace Splitted_backend.Controllers
                 budget.Transactions.Add(transaction);
                 user.Transactions.Add(transaction);
 
-                budget.BudgetBalance += transaction.Amount;
+                if (transaction.Date >= budget.CreationDate)
+                    budget.BudgetBalance += transaction.Amount;
+
                 repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
 
@@ -305,6 +311,7 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{budgetId}/transactions")]
         [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(BudgetTransactionsGetDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
@@ -329,27 +336,21 @@ namespace Splitted_backend.Controllers
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
-                TransactionsFilter transactionsFilter = new TransactionsFilter(
+                TransactionsFilter transactionsFilter = new TransactionsFilter (
                     dates: (dateFrom, dateTo),
                     amounts: (minAmount, maxAmount),
                     category: category,
-                    userName: userName,
-                    userManager: userManager
+                    userName: userName
                 );
-                List<Transaction> transactionsFiltered = await transactionsFilter.GetFilteredTransactions(budget.Transactions);
+                List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
                 List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
 
-
+                InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactionsFiltered);
                 BudgetTransactionsGetDTO budgetTransactionsGetDTO = new BudgetTransactionsGetDTO
                 {
                     Transactions = transactionsFilteredDTO,
-                    Income = transactionsFiltered
-                            .Where(tf => tf.Amount > 0)
-                            .Aggregate(0M, (cur, next) => cur + next.Amount),
-                    Expenses = transactionsFiltered
-                            .Where(tf => tf.Amount < 0)
-                            .Aggregate(0M, (cur, next) => cur + next.Amount),
-
+                    Income = incomeExpensesDTO.Income,
+                    Expenses = incomeExpensesDTO.Expenses,
                 };
                 return Ok(budgetTransactionsGetDTO);
             }
