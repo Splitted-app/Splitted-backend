@@ -59,25 +59,32 @@ namespace AIService
                     string[] autoCategories = aiModule.predict_categories(pyImportedTransactions, userId);
 
                     if (autoCategories is not null)
-                        SetCategories(ref importedTransactions, autoCategories);
+                        SetAICategories(importedTransactions, autoCategories);
+                    else
+                        MapUserCategory(importedTransactions, autoCategories);
                 }
             }
         }
 
-        private void SetCategories(ref List<TransactionCsv> importedTransactions, string[] autoCategories)
+        private void SetAICategories(List<TransactionCsv> importedTransactions, string[] autoCategories)
         {
             string?[] autoCategoriesConverted = autoCategories
                 .Select(ac => ac.Equals("None") ? null : ac)
                 .ToArray();
 
+            MapUserCategory(importedTransactions, autoCategoriesConverted);
+        }
+
+        private void MapUserCategory(List<TransactionCsv> importedTransactions, string?[]? autoCategories)
+        {
             importedTransactions = importedTransactions
-                .Select((it, i) =>
-                {
-                    it.AutoCategory = autoCategoriesConverted[i];
-                    it.UserCategory = it.AutoCategory is null ? it.BankCategory : it.AutoCategory;
-                    return it;
-                })
-                .ToList();
+                 .Select((it, i) =>
+                 {
+                     it.AutoCategory = autoCategories is null ? null : autoCategories[i];
+                     it.UserCategory = it.AutoCategory is null ? it.BankCategory : it.AutoCategory;
+                     return it;
+                 })
+                 .ToList();
         }
 
         private dynamic LoadMainModule()

@@ -116,15 +116,17 @@ namespace Splitted_backend.Controllers
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
-                dateFrom = dateFrom is null || dateFrom < budget.CreationDate ? budget.CreationDate : dateFrom;
                 TransactionsFilter transactionsFilter = new TransactionsFilter(
-                    dates: (dateFrom, dateTo),
+                    dates: (dateFrom, null),
                     amounts: (null, null)
                 );
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
 
+                DateTime lastTransactionDate = budget.Transactions.Max(t => t.Date);
+
                 List<InsightsBalanceHistoryDTO> balanceHistoryDTOs = InsightsManager
-                    .GetBalanceHistory(transactionsFiltered, deltaTime, budget.BudgetBalance);
+                    .GetBalanceHistory(transactionsFiltered, dateFrom, dateTo, lastTransactionDate, deltaTime, 
+                        budget.BudgetBalance);
 
                 return Ok(balanceHistoryDTOs);
             }
@@ -217,7 +219,7 @@ namespace Splitted_backend.Controllers
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
 
                 List<InsightsIncomeExpensesOverTimeDTO> incomeExpensesOverTimeDTOs = InsightsManager
-                    .GetIncomeExpensesOverTime(transactionsFiltered, deltaTime);
+                    .GetIncomeExpensesOverTime(transactionsFiltered, dateFrom, dateTo, deltaTime);
 
                 return Ok(incomeExpensesOverTimeDTOs);
             }
