@@ -2,6 +2,7 @@
 using Models.DTOs.Incoming.Budget;
 using Models.DTOs.Outgoing.Budget;
 using Models.Entities;
+using Models.Enums;
 
 namespace Splitted_backend.MapperProfiles
 {
@@ -10,6 +11,7 @@ namespace Splitted_backend.MapperProfiles
         public BudgetProfile()
         {
             CreateMap<BudgetPostDTO, Budget>()
+                .ForMember(dest => dest.BudgetType, opt => opt.MapFrom(src => BudgetTypeEnum.Personal))
                 .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"))));
 
             CreateMap<BudgetPutDTO, Budget>()

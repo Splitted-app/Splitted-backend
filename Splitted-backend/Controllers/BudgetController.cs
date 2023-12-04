@@ -148,7 +148,7 @@ namespace Splitted_backend.Controllers
         [HttpDelete("{budgetId}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Budget deleted")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or wrong type of budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> DeleteBudget([FromRoute, BindRequired] Guid budgetId)
@@ -168,6 +168,9 @@ namespace Splitted_backend.Controllers
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Personal) || budget.BudgetType.Equals(BudgetTypeEnum.Family))
+                    return StatusCode(403, "Wrong type of budget.");
 
                 repositoryWrapper.Budgets.Delete(budget);
                 await repositoryWrapper.SaveChanges();
@@ -255,7 +258,7 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("{budgetId}/transactions")]
-        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionCreatedDTO))]
+        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionGetDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
@@ -298,7 +301,7 @@ namespace Splitted_backend.Controllers
                 repositoryWrapper.Budgets.Update(budget);
                 await repositoryWrapper.SaveChanges();
 
-                TransactionCreatedDTO transactionCreatedDTO = mapper.Map<TransactionCreatedDTO>(transaction);
+                TransactionGetDTO transactionCreatedDTO = mapper.Map<TransactionGetDTO>(transaction);
                 return CreatedAtAction("PostTransactionToBudget", transactionCreatedDTO);
             }
             catch (Exception exception)

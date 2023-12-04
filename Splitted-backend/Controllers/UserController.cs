@@ -398,7 +398,7 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                List<User> usersFound = SearchManager.SearchUsers(userManager.Users, query);
+                List<User> usersFound = SearchManager.SearchUsers(userManager.Users, query, userId);
                 List<UserGetDTO> usersFoundDTOs = mapper.Map<List<UserGetDTO>>(usersFound);
 
                 return Ok(usersFoundDTOs);
