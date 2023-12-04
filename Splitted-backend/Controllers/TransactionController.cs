@@ -130,7 +130,7 @@ namespace Splitted_backend.Controllers
                     if (parsed)
                         transactionIdsList.Add(transactionId);
                     else
-                        return BadRequest("Some of transactionIds is invalid.");
+                        return BadRequest("Some of transactionIds are invalid.");
                 }
 
                 List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByCondition(t => transactionIdsList.Contains(t.Id));

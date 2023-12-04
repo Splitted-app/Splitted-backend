@@ -38,6 +38,9 @@ namespace Splitted_backend.DbContexts
                 .HasMany(u => u.Budgets)
                 .WithMany(b => b.Users)
                 .UsingEntity<UserBudget>();
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.Friends)
+                .WithMany();
             modelBuilder.Entity<Transaction>()
                 .Property(t => t.TransactionType)
                 .HasConversion(new EnumToStringConverter<TransactionTypeEnum>());

@@ -20,5 +20,7 @@ namespace Splitted_backend.Models.Entities
         public List<UserBudget> UserBudgets { get; set; } = new();
 
         public List<Transaction> Transactions { get; set; } = new();
+
+        public List<User> Friends { get; set; } = new();
     }
 }
