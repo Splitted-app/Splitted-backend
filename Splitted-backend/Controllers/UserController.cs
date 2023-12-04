@@ -16,6 +16,7 @@ using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
+using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
@@ -378,6 +379,33 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside GetUserBudgets method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("search")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Users returned", typeof(List<UserGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> Search([FromQuery, BindRequired] string query)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<User> usersFound = SearchManager.SearchUsers(userManager.Users, query);
+                List<UserGetDTO> usersFoundDTOs = mapper.Map<List<UserGetDTO>>(usersFound);
+
+                return Ok(usersFoundDTOs);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside Search method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
