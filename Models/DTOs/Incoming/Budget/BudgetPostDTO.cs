@@ -15,9 +15,6 @@ namespace Models.DTOs.Incoming.Budget
         public BankNameEnum? Bank { get; set; }
 
         [Required]
-        public BudgetTypeEnum? BudgetType { get; set; }
-
-        [Required]
         public string Currency { get; set; }
 
         [Column(TypeName = "money")]
