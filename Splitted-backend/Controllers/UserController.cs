@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using MimeKit.Encodings;
 using Models.DTOs.Incoming.User;
 using Models.DTOs.Outgoing.Budget;
 using Models.DTOs.Outgoing.User;
@@ -15,6 +16,7 @@ using Models.Entities;
 using Models.Enums;
 using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
+using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
@@ -371,11 +373,156 @@ namespace Splitted_backend.Controllers
                     .Where(b => budgetType is null || b.BudgetType.Equals(budgetType))
                     .ToList();
                 List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(filteredBudgets);
+
                 return Ok(budgets); 
             }
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside GetUserBudgets method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("search")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Users returned", typeof(List<UserGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> Search([FromQuery, BindRequired] string query)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<User> usersFound = SearchManager.SearchUsers(userManager.Users, query);
+                List<UserGetDTO> usersFoundDTOs = mapper.Map<List<UserGetDTO>>(usersFound);
+
+                return Ok(usersFoundDTOs);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside Search method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("friends")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Friends returned", typeof(List<UserGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetFriends()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<UserGetDTO> friends = mapper.Map<List<UserGetDTO>>(user.Friends);
+                return Ok(friends);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetFriends method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("friends/{friendId}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Friend added")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid friend")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or friend not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> AddFriend([FromRoute, Required] Guid friendId)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                User? friend = await userManager.FindByIdWithIncludesAsync(friendId);
+                if (friend is null)
+                    return NotFound($"Friend with given id: {friendId} doesn't exist.");
+
+                if (user.Id == friend.Id)
+                    return BadRequest("You cannot add yourself to your friends.");
+
+                if (user.Friends.Contains(friend))
+                    return BadRequest($"Friend with given id: {friendId} already added.");
+
+                user.Friends.Add(friend);
+                friend.Friends.Add(user);
+
+                await repositoryWrapper.SaveChanges();
+                return CreatedAtAction("AddFriend", null);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside AddFriend method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpDelete("friends/{*friendIds}")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Friends deleted")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid friend")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or friend not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> DeleteFriends([FromRoute, Required] string friendIds)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<Guid> friendIdsList = new List<Guid>();
+                List<string> friendsIdsStrings = friendIds.Split("/")
+                    .ToList();
+
+                foreach (string friendIdString in friendsIdsStrings)
+                {
+                    Guid friendId;
+                    bool parsed = Guid.TryParse(friendIdString, out friendId);
+                    if (parsed)
+                        friendIdsList.Add(friendId);
+                    else
+                        return BadRequest("Some of friendIds are invalid.");
+                }
+
+                List<User> friends = await userManager.FindMultipleByIdsWithIncludesAsync(friendIdsList, (u => u.Friends, null));
+                if (friendIdsList.Count != friends.Count)
+                    return NotFound("Some of friends were not found.");
+
+                foreach (User friend in friends)
+                {
+                    if (!user.Friends.Contains(friend))
+                        return BadRequest($"User with given id: {friend.Id} is not your friend.");
+
+                    user.Friends.Remove(friend);
+                    friend.Friends.Remove(user);
+                }
+
+                await repositoryWrapper.SaveChanges();
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside DeleteFriends method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
