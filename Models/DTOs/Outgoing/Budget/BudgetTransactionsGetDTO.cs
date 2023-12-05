@@ -14,9 +14,12 @@ namespace Models.DTOs.Outgoing.Budget
         public List<TransactionGetDTO> Transactions { get; set; }
 
         [Column(TypeName = "money")]
-        public decimal Income { get; set; }
+        public decimal Income { get; set; } = 0;
 
         [Column(TypeName = "money")]
-        public decimal Expenses { get; set; }
+        public decimal Expenses { get; set; } = 0;
+
+        [Column(TypeName = "money")]
+        public decimal Debt { get; set; } = 0;
     }
 }

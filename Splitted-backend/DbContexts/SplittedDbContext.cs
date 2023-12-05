@@ -41,6 +41,10 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<User>()
                 .HasMany(u => u.Friends)
                 .WithMany();
+            modelBuilder.Entity<TransactionPayBack>()
+                .HasOne(tpb => tpb.OriginalTransaction)
+                .WithMany(t => t.TransactionPayBacks);
+
             modelBuilder.Entity<Transaction>()
                 .Property(t => t.TransactionType)
                 .HasConversion(new EnumToStringConverter<TransactionTypeEnum>());
@@ -50,6 +54,9 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<Budget>()
                 .Property(b => b.BudgetType)
                 .HasConversion(new EnumToStringConverter<BudgetTypeEnum>());
+            modelBuilder.Entity<TransactionPayBack>()
+                .Property(tpb => tpb.TransactionPayBackStatus)
+                .HasConversion(new EnumToStringConverter<TransactionPayBackStatusEnum>());
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Splitted_backend.DbContexts;
 
@@ -11,9 +12,11 @@ using Splitted_backend.DbContexts;
 namespace Splitted_backend.Migrations
 {
     [DbContext(typeof(SplittedDbContext))]
-    partial class SplittedDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231205212449_Added TransactionPayBack entity")]
+    partial class AddedTransactionPayBackentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
