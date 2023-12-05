@@ -40,5 +40,25 @@ namespace Splitted_backend.Managers
             await repositoryWrapper.SaveChanges();
             return familyBudget;
         }
+
+        public static async Task<Budget> CreatePartnerMode(IRepositoryWrapper repositoryWrapper, User firstUser, 
+            User secondUser, BudgetPostDTO budgetPostDTO)
+        {
+            Budget partnerBudget = new Budget
+            {
+                BudgetType = BudgetTypeEnum.Partner,
+                Currency = budgetPostDTO.Currency,
+                Bank = budgetPostDTO.Bank,
+                BudgetBalance = 0,
+                CreationDate = DateTime.Now,
+            };
+
+            repositoryWrapper.Budgets.Create(partnerBudget);
+            firstUser.Budgets.Add(partnerBudget);
+            secondUser.Budgets.Add(partnerBudget);
+
+            await repositoryWrapper.SaveChanges();
+            return partnerBudget;
+        }
     }
 }

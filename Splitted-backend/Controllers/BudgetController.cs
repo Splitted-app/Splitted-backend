@@ -101,6 +101,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Budget created", typeof(BudgetCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> CreateBudget([FromBody] BudgetPostDTO budgetPostDTO)
@@ -114,9 +115,12 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Invalid model object.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdAsync(userId.ToString());
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
+
+                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Personal) || b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                    return StatusCode(403, "User cannot have more than one personal or family budget.");
 
                 Budget budget = mapper.Map<Budget>(budgetPostDTO);
 
@@ -185,7 +189,7 @@ namespace Splitted_backend.Controllers
         [HttpDelete("{budgetId}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Budget deleted")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or wrong type of budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> DeleteBudget([FromRoute, BindRequired] Guid budgetId)
@@ -226,7 +230,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Transactions saved", typeof(List<TransactionGetDTO>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid bank or file")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PostCsvTransactionsToBudget([FromForm] IFormFile csvFile, [FromRoute, BindRequired] Guid budgetId,
@@ -247,6 +251,9 @@ namespace Splitted_backend.Controllers
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Partner) || budget.BudgetType.Equals(BudgetTypeEnum.Temporary))
+                    return StatusCode(403, "You cannot add new transactions to partner or temporary budget.");
 
                 if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv")
                     return BadRequest("Received file is not a csv file.");
@@ -298,7 +305,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionGetDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PostTransactionToBudget([FromBody] TransactionPostDTO transactionPostDTO,
@@ -325,6 +332,9 @@ namespace Splitted_backend.Controllers
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Partner) || budget.BudgetType.Equals(BudgetTypeEnum.Temporary))
+                    return StatusCode(403, "You cannot add new transactions to partner or temporary budget.");
 
                 Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
 

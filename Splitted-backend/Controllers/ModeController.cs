@@ -95,5 +95,42 @@ namespace Splitted_backend.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("partner-mode/{partnerId}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Partner mode created", typeof(BudgetCreatedDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter or invalid family member")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or family member not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> AddPartnerMode([FromRoute, BindRequired] Guid partnerId,
+            [FromBody] BudgetPostDTO budgetPostDTO)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                User? partner = await userManager.FindByIdAsync(partnerId.ToString());
+                if (partner is null)
+                    return NotFound($"Family member with given id: {partnerId} doesn't exist.");
+
+                if (partner.Id.Equals(user.Id))
+                    return BadRequest("You cannot create partner mode with yourself.");
+
+                Budget partnerBudget = await ModeManager.CreatePartnerMode(repositoryWrapper, user, partner,
+                    budgetPostDTO);
+                BudgetCreatedDTO partnerBudgetCreatedDTO = mapper.Map<BudgetCreatedDTO>(partnerBudget);
+
+                return CreatedAtAction("AddPartnerMode", partnerBudgetCreatedDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside AddPartnerMode method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
     }
 }
