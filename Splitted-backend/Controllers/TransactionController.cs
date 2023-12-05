@@ -53,7 +53,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status204NoContent, "Transaction updated")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "Transaction doesn't belong to the user")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction or user not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PutTransaction([FromRoute, BindRequired] Guid transactionId, 
@@ -72,7 +72,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null), (u => u.Transactions, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -82,9 +82,9 @@ namespace Splitted_backend.Controllers
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
-                bool ifTransactionValid = user.Transactions.Any(t => t.Id.Equals(transactionId));
-                if (!ifTransactionValid)
-                    return StatusCode(403, $"Transaction doesn't belong to the user with id: {userId}.");
+                bool ifBudgetValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(budgetId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
                 
                 if (transactionPutDTO.Amount is not null && transaction.Date >= budget.CreationDate)
                 {
@@ -112,7 +112,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status204NoContent, "Transactions deleted")]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid path parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "Transaction doesn't belong to user")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction or user not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> DeleteTransactions([FromRoute, BindRequired] string transactionIds)
@@ -138,7 +138,7 @@ namespace Splitted_backend.Controllers
                     return NotFound("Some of transactions were not found.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null), (u => u.Transactions, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -150,10 +150,6 @@ namespace Splitted_backend.Controllers
                 bool ifBudgetValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(budgetId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
-
-                bool ifTransactionsValid = transactions.All(t => user.Transactions.Any(ut => ut.Id.Equals(t.Id)));
-                if (!ifTransactionsValid)
-                    return StatusCode(403, $"Some of transactions don't belong to the user with id: {userId}.");
 
                 InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactions
                     .Where(t => t.Date >= budget.CreationDate)

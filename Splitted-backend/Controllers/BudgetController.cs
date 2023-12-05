@@ -358,6 +358,73 @@ namespace Splitted_backend.Controllers
             }
         }
 
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("{budgetId}/transactions/{*transactionIds}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionGetDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid path parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User, budget or transactions not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> PostExistingTransactionsToBudget([FromRoute, BindRequired] Guid budgetId,
+            [FromRoute, BindRequired] string transactionIds)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with id {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null), (b => b.Transactions, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                List<Guid> transactionIdsList = new List<Guid>();
+                List<string> transactionIdsStrings = transactionIds.Split("/")
+                    .ToList();
+
+                foreach (string transactionIdString in transactionIdsStrings)
+                {
+                    Guid transactionId;
+                    bool parsed = Guid.TryParse(transactionIdString, out transactionId);
+                    if (parsed)
+                        transactionIdsList.Add(transactionId);
+                    else
+                        return BadRequest("Some of transactionIds are invalid.");
+                }
+
+                List<Transaction> originalTransactions = await repositoryWrapper.Transactions
+                    .GetEntitiesByCondition(t => transactionIdsList.Contains(t.Id));
+                if (transactionIdsList.Count != originalTransactions.Count)
+                    return NotFound("Some of transactions were not found.");
+
+                List<Transaction> transactionsToAdd = originalTransactions
+                    .Select(t => t.Copy())
+                    .ToList();
+
+                repositoryWrapper.Transactions.FindDuplicates(transactionsToAdd, budget.Transactions);
+                budget.Transactions.AddRange(transactionsToAdd);
+
+                repositoryWrapper.Budgets.Update(budget);
+                await repositoryWrapper.SaveChanges();
+
+                List<TransactionGetDTO> transactionsCreatedDTO = mapper.Map<List<TransactionGetDTO>>(transactionsToAdd);
+                return CreatedAtAction("PostExistingTransactionsToBudget", transactionsCreatedDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside PostExistingTransactionsToBudget method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{budgetId}/transactions")]
         [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(BudgetTransactionsGetDTO))]

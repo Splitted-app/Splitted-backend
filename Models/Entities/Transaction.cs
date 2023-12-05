@@ -55,6 +55,20 @@ namespace Models.Entities
             return false;
         }
 
+        public Transaction Copy()
+            => new Transaction
+            {
+                Amount = Amount,
+                Currency = Currency,
+                Date = Date,
+                Description = Description,
+                TransactionType = TransactionType,
+                BankCategory = BankCategory,
+                AutoCategory = AutoCategory,
+                UserCategory = UserCategory,
+                UserId = UserId,
+            };
+
         public override int GetHashCode()
         {
             return (Amount, Currency, Date, Description).GetHashCode();

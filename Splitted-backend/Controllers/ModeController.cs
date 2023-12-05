@@ -99,7 +99,7 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("partner-mode/{partnerId}")]
         [SwaggerResponse(StatusCodes.Status201Created, "Partner mode created", typeof(BudgetCreatedDTO))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter or invalid family member")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid family member")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or family member not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
@@ -108,6 +108,12 @@ namespace Splitted_backend.Controllers
         {
             try
             {
+                if (budgetPostDTO is null)
+                    return BadRequest("BudgetPostDTO object is null.");
+
+                if (!ModelState.IsValid)
+                    return BadRequest("Invalid model object.");
+
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
                 User? user = await userManager.FindByIdAsync(userId.ToString());
                 if (user is null)
