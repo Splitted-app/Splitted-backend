@@ -10,6 +10,7 @@ namespace Models.DTOs.Incoming.Budget
     public class BudgetPutDTO
     {
         private BankNameEnum? bank;
+        private string? name;
         private string? currency;
         private decimal? budgetBalance;
         private readonly HashSet<string> setProperties = new HashSet<string>();
@@ -28,6 +29,16 @@ namespace Models.DTOs.Incoming.Budget
             {
                 bank = value;
                 setProperties.Add(nameof(Bank));
+            }
+        }
+
+        public string? Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                setProperties.Add(nameof(Name));
             }
         }
 

@@ -20,6 +20,8 @@ namespace Models.Entities
 
         public TransactionPayBackStatusEnum TransactionPayBackStatus { get; set; }
 
+        public bool InCash { get; set; }
+
 
         public Guid OriginalTransactionId { get; set; }
 

@@ -17,6 +17,8 @@ namespace Models.DTOs.Outgoing.Budget
 
         public BudgetTypeEnum BudgetType { get; set; }
 
+        public string Name { get; set; }
+
         public string Currency { get; set; }
 
         [Column(TypeName = "money")]

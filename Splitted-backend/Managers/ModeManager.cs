@@ -13,7 +13,7 @@ namespace Splitted_backend.Managers
     public static class ModeManager
     {
         public static async Task<Budget> CreateFamilyMode(IRepositoryWrapper repositoryWrapper, User firstUser,
-            User secondUser, FamilyModePostDTO familyModePostDTO)
+            User secondUser, BudgetModePostDTO familyModePostDTO)
         {
             Budget firstPersonalBudget = firstUser.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal));
             Budget secondPersonalBudget = secondUser.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal));
@@ -21,6 +21,7 @@ namespace Splitted_backend.Managers
             Budget familyBudget = new Budget
             {
                 BudgetType = BudgetTypeEnum.Family,
+                Name = familyModePostDTO.Name,
                 Currency = familyModePostDTO.Currency,
                 Bank = familyModePostDTO.Bank,
                 BudgetBalance = firstPersonalBudget.BudgetBalance + secondPersonalBudget.BudgetBalance,
@@ -43,13 +44,14 @@ namespace Splitted_backend.Managers
         }
 
         public static async Task<Budget> CreatePartnerMode(IRepositoryWrapper repositoryWrapper, User firstUser, 
-            User secondUser, BudgetPostDTO budgetPostDTO)
+            User secondUser, BudgetModePostDTO partnerModePostDTO)
         {
             Budget partnerBudget = new Budget
             {
                 BudgetType = BudgetTypeEnum.Partner,
-                Currency = budgetPostDTO.Currency,
-                Bank = budgetPostDTO.Bank,
+                Name = partnerModePostDTO.Name,
+                Currency = partnerModePostDTO.Currency,
+                Bank = partnerModePostDTO.Bank,
                 BudgetBalance = 0,
                 CreationDate = DateTime.Now,
             };
@@ -62,7 +64,7 @@ namespace Splitted_backend.Managers
             return partnerBudget;
         }
 
-        public static void DeterminePayBacks(List<Transaction> transactions, List<Guid> otherUserIds)
+        public static void DeterminePayBacks(List<Transaction> transactions, Guid userId, List<Guid> otherUserIds)
         {
             foreach (Transaction transaction in transactions)
             {
@@ -70,7 +72,12 @@ namespace Splitted_backend.Managers
 
                 if (transaction.Amount > 0)
                 {
-                    // TO DO 
+                    transactionPayBacks.Add(new TransactionPayBack
+                    {
+                        Amount = -transaction.Amount / (otherUserIds.Count + 1),
+                        TransactionPayBackStatus = TransactionPayBackStatusEnum.Unpaid,
+                        UserId = userId
+                    });
                 }
                 else
                 {
@@ -86,13 +93,17 @@ namespace Splitted_backend.Managers
             }
         }
 
-        public static void MakePayback(Transaction transaction, Guid paybackTransactionId, Guid userId)
+        public static void MakePayback(Transaction transaction, Guid? paybackTransactionId, Guid userId)
         {
             TransactionPayBack transactionPayBack = transaction.TransactionPayBacks
                 .First(tpb => tpb.UserId.Equals(userId));
 
             transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.WaitingForApproval;
-            transactionPayBack.PayBackTransactionId = paybackTransactionId;
+
+            if (paybackTransactionId is null)
+                transactionPayBack.InCash = true;
+            else
+                transactionPayBack.PayBackTransactionId = paybackTransactionId;
         }
 
         public static void ResolvePayback(Transaction transaction, Guid transactionPayBackId, bool accept)
@@ -106,6 +117,7 @@ namespace Splitted_backend.Managers
             {
                 transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.Unpaid;
                 transactionPayBack.PayBackTransactionId = null;
+                transactionPayBack.InCash = false;
             }            
         }
 

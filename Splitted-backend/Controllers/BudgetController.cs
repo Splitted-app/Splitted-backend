@@ -76,8 +76,8 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -87,7 +87,6 @@ namespace Splitted_backend.Controllers
 
                 BudgetGetDTO budgetGetDTO = mapper.Map<BudgetGetDTO>(budget);
                 return Ok(budgetGetDTO);
-
             }
             catch (Exception exception)
             {
@@ -422,7 +421,7 @@ namespace Splitted_backend.Controllers
                     .ToList();
 
                 repositoryWrapper.Transactions.FindDuplicates(transactionsToAdd, budget.Transactions);
-                ModeManager.DeterminePayBacks(transactionsToAdd, otherUserIds);
+                ModeManager.DeterminePayBacks(transactionsToAdd, userId, otherUserIds);
                 budget.Transactions.AddRange(transactionsToAdd);
 
                 repositoryWrapper.Budgets.Update(budget);

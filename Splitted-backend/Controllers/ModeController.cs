@@ -53,12 +53,12 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or family member not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddFamilyMode([FromRoute, BindRequired] Guid familyMemberId, 
-            [FromBody] FamilyModePostDTO familyModePostDTO)
+            [FromBody] BudgetModePostDTO familyModePostDTO)
         {
             try
             {
                 if (familyModePostDTO is null)
-                    return BadRequest("FamilyModePostDTO object is null.");
+                    return BadRequest("BudgetModePostDTO object is null.");
 
                 if (!ModelState.IsValid)
                     return BadRequest("Invalid model object.");
@@ -99,35 +99,44 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost("partner-mode/{partnerId}")]
         [SwaggerResponse(StatusCodes.Status201Created, "Partner mode created", typeof(BudgetCreatedDTO))]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid family member")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid partner")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status404NotFound, "User or family member not found")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User or partner already in partner mode")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or partner not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddPartnerMode([FromRoute, BindRequired] Guid partnerId,
-            [FromBody] BudgetPostDTO budgetPostDTO)
+            [FromBody] BudgetModePostDTO partnerModePostDTO)
         {
             try
             {
-                if (budgetPostDTO is null)
-                    return BadRequest("BudgetPostDTO object is null.");
+                if (partnerModePostDTO is null)
+                    return BadRequest("PartnerModePostDTO object is null.");
 
                 if (!ModelState.IsValid)
                     return BadRequest("Invalid model object.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdAsync(userId.ToString());
+                User? user = await userManager.FindByIdWithIncludesAsync(userId,
+                    (u => u.Budgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                User? partner = await userManager.FindByIdAsync(partnerId.ToString());
+                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                    return StatusCode(403, "User already in partner mode.");
+
+                User? partner = await userManager.FindByIdWithIncludesAsync(partnerId,
+                    (u => u.Budgets, null, null));
                 if (partner is null)
-                    return NotFound($"Family member with given id: {partnerId} doesn't exist.");
+                    return NotFound($"Partner with given id: {partnerId} doesn't exist.");
 
                 if (partner.Id.Equals(user.Id))
                     return BadRequest("You cannot create partner mode with yourself.");
 
+                if (partner.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                    return StatusCode(403, "Partner already in partner mode.");
+
                 Budget partnerBudget = await ModeManager.CreatePartnerMode(repositoryWrapper, user, partner,
-                    budgetPostDTO);
+                    partnerModePostDTO);
                 BudgetCreatedDTO partnerBudgetCreatedDTO = mapper.Map<BudgetCreatedDTO>(partnerBudget);
 
                 return CreatedAtAction("AddPartnerMode", partnerBudgetCreatedDTO);
