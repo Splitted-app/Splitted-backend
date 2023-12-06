@@ -13,12 +13,16 @@ namespace Splitted_backend.Interfaces
 
         void DeleteMultiple(IEnumerable<T> entities);
 
-        Task CreateMultiple(IEnumerable<T> entities);
+        Task CreateMultipleAsync(IEnumerable<T> entities);
 
-        Task<List<T>> GetAll();
+        Task<List<T>> GetAllAsync();
 
-        Task<List<T>> GetEntitiesByCondition(Expression<Func<T, bool>> expression);
+        Task<List<T>> GetEntitiesByConditionAsync(Expression<Func<T, bool>> expression);
 
-        Task<T?> GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include, Expression<Func<object, object>>? thenInclude)[] includes);
+        T? GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include,
+            Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes);
+
+        Task<T?> GetEntityOrDefaultByConditionAsync(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include, 
+            Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes);
     }
 }

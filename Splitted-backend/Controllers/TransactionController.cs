@@ -68,18 +68,18 @@ namespace Splitted_backend.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest("Invalid model object.");
 
-                Transaction? transaction = await repositoryWrapper.Transactions.GetEntityOrDefaultByCondition(t => t.Id.Equals(transactionId));
+                Transaction? transaction = await repositoryWrapper.Transactions.GetEntityOrDefaultByConditionAsync(t => t.Id.Equals(transactionId));
                 if (transaction is null)
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
                 Guid budgetId = transaction.BudgetId;
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId), 
-                    (b => b.Transactions, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId), 
+                    (b => b.Transactions, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -134,17 +134,17 @@ namespace Splitted_backend.Controllers
                         return BadRequest("Some of transactionIds are invalid.");
                 }
 
-                List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByCondition(t => transactionIdsList.Contains(t.Id));
+                List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByConditionAsync(t => transactionIdsList.Contains(t.Id));
                 if (transactionIdsList.Count != transactions.Count)
                     return NotFound("Some of transactions were not found.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
                 Guid budgetId = transactions[0].BudgetId;
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -184,26 +184,32 @@ namespace Splitted_backend.Controllers
             try
             {
                 Transaction? transaction = await repositoryWrapper.Transactions
-                    .GetEntityOrDefaultByCondition(t => t.Id.Equals(transactionId), (t => t.TransactionPayBacks, null));
+                    .GetEntityOrDefaultByConditionAsync(t => t.Id.Equals(transactionId), 
+                    (t => t.TransactionPayBacks, null, null));
                 if (transaction is null)
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
                 Transaction? paybackTransaction = await repositoryWrapper.Transactions
-                    .GetEntityOrDefaultByCondition(t => t.Id.Equals(paybackTransactionId));
+                    .GetEntityOrDefaultByConditionAsync(t => t.Id.Equals(paybackTransactionId),
+                    (t => t.Budget, null, null));
                 if (paybackTransaction is null)
                     return NotFound($"Payback transaction with given id: {paybackTransactionId} doesn't exist.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
+
+                if (paybackTransaction.Budget.BudgetType.Equals(BudgetTypeEnum.Partner)
+                    || paybackTransaction.Budget.BudgetType.Equals(BudgetTypeEnum.Temporary))
+                    return StatusCode(403, "Payback transaction cannot come from partner or temporary budget.");
 
                 if (!transaction.TransactionPayBacks.Any(tpb => tpb.UserId.Equals(userId)))
                     return StatusCode(403, "You are not allowed to pay yourself back.");
 
                 Guid budgetId = transaction.BudgetId;
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.Transactions, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -238,7 +244,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Transaction? transaction = await repositoryWrapper.Transactions
-                    .GetEntityOrDefaultByCondition(t => t.Id.Equals(transactionId), (t => t.TransactionPayBacks, null));
+                    .GetEntityOrDefaultByConditionAsync(t => t.Id.Equals(transactionId), (t => t.TransactionPayBacks, null, null));
                 if (transaction is null)
                     return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
 
@@ -246,7 +252,7 @@ namespace Splitted_backend.Controllers
                     return NotFound($"TransactionPayBack with given id: {transactionPayBackId} doesn't exist.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -254,8 +260,8 @@ namespace Splitted_backend.Controllers
                     return StatusCode(403, "You are not allowed to resolve payback.");
 
                 Guid budgetId = transaction.BudgetId;
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.Transactions, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -289,7 +295,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Transactions, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Transactions, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 

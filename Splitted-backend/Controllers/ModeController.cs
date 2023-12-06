@@ -65,7 +65,7 @@ namespace Splitted_backend.Controllers
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
                 User? user = await userManager.FindByIdWithIncludesAsync(userId, 
-                    (u => u.Budgets, b => ((Budget)b).Transactions));
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -73,7 +73,7 @@ namespace Splitted_backend.Controllers
                     return StatusCode(403, "User already in family mode.");
 
                 User? familyMember = await userManager.FindByIdWithIncludesAsync(familyMemberId, 
-                    (u => u.Budgets, b => ((Budget)b).Transactions));
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
                 if (familyMember is null)
                     return NotFound($"Family member with given id: {familyMemberId} doesn't exist.");
 

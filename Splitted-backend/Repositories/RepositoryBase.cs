@@ -25,14 +25,19 @@ namespace Splitted_backend.Repositories
 
         public void DeleteMultiple(IEnumerable<T> entities) => splittedDbContext.Set<T>().RemoveRange(entities);
 
-        public async Task CreateMultiple(IEnumerable<T> entities) => await splittedDbContext.Set<T>().AddRangeAsync(entities);
+        public async Task CreateMultipleAsync(IEnumerable<T> entities) => await splittedDbContext.Set<T>().AddRangeAsync(entities);
 
-        public async Task<List<T>> GetAll() => await splittedDbContext.Set<T>().ToListAsync();
+        public async Task<List<T>> GetAllAsync() => await splittedDbContext.Set<T>().ToListAsync();
 
-        public async Task<List<T>> GetEntitiesByCondition(Expression<Func<T, bool>> expression) 
+        public T? GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include,
+            Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes)
+            => splittedDbContext.Set<T>().IncludeMultiple(includes).FirstOrDefault(expression);
+
+        public async Task<List<T>> GetEntitiesByConditionAsync(Expression<Func<T, bool>> expression) 
             => await splittedDbContext.Set<T>().Where(expression).ToListAsync();
 
-        public async Task<T?> GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include, Expression<Func<object, object>>? thenInclude)[] includes)
+        public async Task<T?> GetEntityOrDefaultByConditionAsync(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include, 
+            Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes)
             => await splittedDbContext.Set<T>().IncludeMultiple(includes).FirstOrDefaultAsync(expression);
     }
 }
