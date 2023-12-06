@@ -19,6 +19,7 @@ using Splitted_backend.Extensions;
 using AIService;
 using Splitted_backend.Managers;
 using Models.DTOs.Outgoing.Insights;
+using System;
 
 namespace Splitted_backend.Controllers
 {
@@ -165,6 +166,112 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside DeleteTransactions method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPut("{transactionId}/payback/{paybackTransactionId}")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Payback updated")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or is not allowed to pay back")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction or user not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> PayTransactionBack([FromRoute, BindRequired] Guid transactionId,
+            [FromRoute, BindRequired] Guid paybackTransactionId)
+        {
+            try
+            {
+                Transaction? transaction = await repositoryWrapper.Transactions
+                    .GetEntityOrDefaultByCondition(t => t.Id.Equals(transactionId), (t => t.TransactionPayBacks, null));
+                if (transaction is null)
+                    return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
+
+                Transaction? paybackTransaction = await repositoryWrapper.Transactions
+                    .GetEntityOrDefaultByCondition(t => t.Id.Equals(paybackTransactionId));
+                if (paybackTransaction is null)
+                    return NotFound($"Payback transaction with given id: {paybackTransactionId} doesn't exist.");
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                if (!transaction.TransactionPayBacks.Any(tpb => tpb.UserId.Equals(userId)))
+                    return StatusCode(403, "You are not allowed to pay yourself back.");
+
+                Guid budgetId = transaction.BudgetId;
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(budgetId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                ModeManager.MakePayback(transaction, paybackTransactionId, userId);
+                repositoryWrapper.Transactions.Update(transaction);
+                await repositoryWrapper.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside PayTransactionBack method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPut("{transactionId}/resolve-payback/{transactionPayBackId}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Payback resolved")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or is not allowed to resolve payback")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction, transactionPayBack or user not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> ResolvePayback([FromRoute, BindRequired] Guid transactionId,
+            [FromRoute, BindRequired] Guid transactionPayBackId, [FromQuery, BindRequired] bool accept)
+        {
+            try
+            {
+                Transaction? transaction = await repositoryWrapper.Transactions
+                    .GetEntityOrDefaultByCondition(t => t.Id.Equals(transactionId), (t => t.TransactionPayBacks, null));
+                if (transaction is null)
+                    return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
+
+                if (!transaction.TransactionPayBacks.Any(tbd => tbd.Id.Equals(transactionPayBackId)))
+                    return NotFound($"TransactionPayBack with given id: {transactionPayBackId} doesn't exist.");
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                if (transaction.TransactionPayBacks.Any(tpb => tpb.UserId.Equals(userId)))
+                    return StatusCode(403, "You are not allowed to resolve payback.");
+
+                Guid budgetId = transaction.BudgetId;
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(budgetId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                ModeManager.ResolvePayback(transaction, transactionPayBackId, accept);
+                repositoryWrapper.Transactions.Update(transaction);
+                await repositoryWrapper.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside ResolvePayback method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

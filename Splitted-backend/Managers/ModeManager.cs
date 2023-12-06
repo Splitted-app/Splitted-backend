@@ -70,7 +70,7 @@ namespace Splitted_backend.Managers
 
                 if (transaction.Amount > 0)
                 {
-
+                    // TO DO 
                 }
                 else
                 {
@@ -84,6 +84,29 @@ namespace Splitted_backend.Managers
 
                 transaction.TransactionPayBacks.AddRange(transactionPayBacks);
             }
+        }
+
+        public static void MakePayback(Transaction transaction, Guid paybackTransactionId, Guid userId)
+        {
+            TransactionPayBack transactionPayBack = transaction.TransactionPayBacks
+                .First(tpb => tpb.UserId.Equals(userId));
+
+            transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.WaitingForApproval;
+            transactionPayBack.PayBackTransactionId = paybackTransactionId;
+        }
+
+        public static void ResolvePayback(Transaction transaction, Guid transactionPayBackId, bool accept)
+        {
+            TransactionPayBack transactionPayBack = transaction.TransactionPayBacks
+                .First(tpb => tpb.Id.Equals(transactionPayBackId));
+
+            if (accept)
+                transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.PaidBack;
+            else
+            {
+                transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.Unpaid;
+                transactionPayBack.PayBackTransactionId = null;
+            }            
         }
 
         public static decimal GetUserDebt(Budget budget, Guid userId, int usersNumber)
