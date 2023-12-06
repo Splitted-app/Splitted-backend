@@ -61,6 +61,42 @@ namespace Splitted_backend.Controllers
 
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("{budgetId}")]
+        [SwaggerResponse(StatusCodes.Status200OK, "Budget info returned", typeof(BudgetGetDTO))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "Budget or user not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetBudget([FromRoute, BindRequired] Guid budgetId)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                BudgetGetDTO budgetGetDTO = mapper.Map<BudgetGetDTO>(budget);
+                return Ok(budgetGetDTO);
+
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetBudget method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpPost]
         [SwaggerResponse(StatusCodes.Status201Created, "Budget created", typeof(BudgetCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
@@ -107,7 +143,8 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> PutBudget([FromBody] BudgetPutDTO budgetPutDTO, [FromRoute, BindRequired] Guid budgetId)
+        public async Task<IActionResult> PutBudget([FromBody] BudgetPutDTO budgetPutDTO, 
+            [FromRoute, BindRequired] Guid budgetId)
         {
             try
             {

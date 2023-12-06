@@ -357,10 +357,11 @@ namespace Splitted_backend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("budgets")]
         [SwaggerResponse(StatusCodes.Status200OK, "User's budgets returned", typeof(List<BudgetGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> GetUserBudgets([FromQuery] BudgetTypeEnum? budgetType)
+        public async Task<IActionResult> GetUserBudgets([FromQuery] string? budgetType)
         {
             try
             {
@@ -369,8 +370,24 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
+                List<BudgetTypeEnum> budgetTypeEnums = new List<BudgetTypeEnum>();
+                if (budgetType is not null)
+                {
+                    string[] budgetTypesStrings = budgetType.Split(",");
+                    foreach (string budgetTypeString in budgetTypesStrings)
+                    {
+                        BudgetTypeEnum budgetTypeEnum;
+                        bool parsed = Enum.TryParse(budgetTypeString, true, out budgetTypeEnum);
+
+                        if (parsed)
+                            budgetTypeEnums.Add(budgetTypeEnum);
+                        else
+                            return BadRequest("Invalid query paremeter.");
+                    }
+                }
+
                 List<Budget> filteredBudgets = user.Budgets
-                    .Where(b => budgetType is null || b.BudgetType.Equals(budgetType))
+                    .Where(b => budgetType is null || budgetTypeEnums.Any(bte => bte.Equals(b.BudgetType)))
                     .ToList();
                 List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(filteredBudgets);
 
