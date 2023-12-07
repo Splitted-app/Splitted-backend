@@ -302,12 +302,12 @@ namespace Splitted_backend.Managers
 
             return new InsightsSummaryDTO
             {
-                MaxValue = transactionsAmounts.Max(),
-                MinValue = transactionsAmounts.Min(),
-                Mean = transactionsAmounts.Average(),
-                Q1 = transactionsAmounts.Percentile(25M),
-                Median = transactionsAmounts.Percentile(50M),
-                Q3 = transactionsAmounts.Percentile(75M),
+                MaxValue = transactionsAmounts.Count == 0 ? 0 : transactionsAmounts.Max(),
+                MinValue = transactionsAmounts.Count == 0 ? 0 : transactionsAmounts.Min(),
+                Mean = transactionsAmounts.Count == 0 ? 0 : transactionsAmounts.Average(),
+                Q1 = transactionsAmounts.Count == 0 ? 0 : transactionsAmounts.Percentile(25M),
+                Median = transactionsAmounts.Count == 0 ? 0 : transactionsAmounts.Percentile(50M),
+                Q3 = transactionsAmounts.Count == 0 ? 0 : transactionsAmounts.Percentile(75M),
             };
         }
     }
