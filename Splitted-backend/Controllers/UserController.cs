@@ -366,7 +366,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -411,7 +411,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -438,7 +438,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -464,7 +464,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -503,7 +503,7 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Friends, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -521,7 +521,8 @@ namespace Splitted_backend.Controllers
                         return BadRequest("Some of friendIds are invalid.");
                 }
 
-                List<User> friends = await userManager.FindMultipleByIdsWithIncludesAsync(friendIdsList, (u => u.Friends, null));
+                List<User> friends = await userManager.FindMultipleByIdsWithIncludesAsync(friendIdsList, 
+                    (u => u.Friends, null, null));
                 if (friendIdsList.Count != friends.Count)
                     return NotFound("Some of friends were not found.");
 

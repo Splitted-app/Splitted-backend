@@ -76,8 +76,8 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -87,7 +87,6 @@ namespace Splitted_backend.Controllers
 
                 BudgetGetDTO budgetGetDTO = mapper.Map<BudgetGetDTO>(budget);
                 return Ok(budgetGetDTO);
-
             }
             catch (Exception exception)
             {
@@ -101,6 +100,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Budget created", typeof(BudgetCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> CreateBudget([FromBody] BudgetPostDTO budgetPostDTO)
@@ -114,9 +114,12 @@ namespace Splitted_backend.Controllers
                     return BadRequest("Invalid model object.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdAsync(userId.ToString());
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
+
+                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Personal) || b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                    return StatusCode(403, "User cannot have more than one personal or family budget.");
 
                 Budget budget = mapper.Map<Budget>(budgetPostDTO);
 
@@ -159,8 +162,8 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -185,7 +188,7 @@ namespace Splitted_backend.Controllers
         [HttpDelete("{budgetId}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Budget deleted")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or wrong type of budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> DeleteBudget([FromRoute, BindRequired] Guid budgetId)
@@ -197,8 +200,8 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -226,7 +229,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Transactions saved", typeof(List<TransactionGetDTO>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid bank or file")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PostCsvTransactionsToBudget([FromForm] IFormFile csvFile, [FromRoute, BindRequired] Guid budgetId,
@@ -239,14 +242,17 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with id {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null), (b => b.Transactions, t => ((Transaction)t).User));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null), (b => b.Transactions, t => ((Transaction)t).User, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Partner) || budget.BudgetType.Equals(BudgetTypeEnum.Temporary))
+                    return StatusCode(403, "You cannot add new transactions to partner or temporary budget.");
 
                 if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv")
                     return BadRequest("Received file is not a csv file.");
@@ -298,7 +304,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionGetDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> PostTransactionToBudget([FromBody] TransactionPostDTO transactionPostDTO,
@@ -317,14 +323,17 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with id {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null), (b => b.Transactions, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null), (b => b.Transactions, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
                 bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Partner) || budget.BudgetType.Equals(BudgetTypeEnum.Temporary))
+                    return StatusCode(403, "You cannot add new transactions to partner or temporary budget.");
 
                 Transaction transaction = mapper.Map<Transaction>(transactionPostDTO);
 
@@ -348,12 +357,92 @@ namespace Splitted_backend.Controllers
             }
         }
 
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("{budgetId}/transactions/{*transactionIds}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Transaction saved", typeof(TransactionGetDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid path parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User, budget or transactions not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> PostExistingTransactionsToBudget([FromRoute, BindRequired] Guid budgetId,
+            [FromRoute, BindRequired] string transactionIds)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with id {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null), (b => b.Transactions, null, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Personal) || budget.BudgetType.Equals(BudgetTypeEnum.Family))
+                    return StatusCode(403, "You cannot add existing transactions to personal or family budget.");
+
+                List<Guid> transactionIdsList = new List<Guid>();
+                List<string> transactionIdsStrings = transactionIds.Split("/")
+                    .ToList();
+
+                foreach (string transactionIdString in transactionIdsStrings)
+                {
+                    Guid transactionId;
+                    bool parsed = Guid.TryParse(transactionIdString, out transactionId);
+                    if (parsed)
+                        transactionIdsList.Add(transactionId);
+                    else
+                        return BadRequest("Some of transactionIds are invalid.");
+                }
+
+                List<Transaction> originalTransactions = await repositoryWrapper.Transactions
+                    .GetEntitiesByConditionAsync(t => transactionIdsList.Contains(t.Id));
+                if (transactionIdsList.Count != originalTransactions.Count)
+                    return NotFound("Some of transactions were not found.");
+
+                bool ifTransactionsValid = originalTransactions.All(t => user.Transactions.Any(ut => ut.Id.Equals(t.Id)));
+                if (!ifTransactionsValid)
+                    return StatusCode(403, $"Some of transactions don't belong to the user with id: {userId}.");
+
+                List<Transaction> transactionsToAdd = originalTransactions
+                    .Select(t => t.Copy())
+                    .ToList();
+
+                List<Guid> otherUserIds = budget.UserBudgets
+                    .Where(ub => !ub.UserId.Equals(userId))
+                    .Select(ub => ub.UserId)
+                    .ToList();
+
+                repositoryWrapper.Transactions.FindDuplicates(transactionsToAdd, budget.Transactions);
+                ModeManager.DeterminePayBacks(transactionsToAdd, userId, otherUserIds);
+                budget.Transactions.AddRange(transactionsToAdd);
+
+                repositoryWrapper.Budgets.Update(budget);
+                await repositoryWrapper.SaveChanges();
+
+                List<TransactionGetDTO> transactionsCreatedDTO = mapper.Map<List<TransactionGetDTO>>(transactionsToAdd);
+                return CreatedAtAction("PostExistingTransactionsToBudget", transactionsCreatedDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside PostExistingTransactionsToBudget method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("{budgetId}/transactions")]
         [SwaggerResponse(StatusCodes.Status200OK, "Transactions returned", typeof(BudgetTransactionsGetDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> GetBudgetTransactions([FromRoute, BindRequired] Guid budgetId, [FromQuery] DateTime? dateFrom,
@@ -367,8 +456,10 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with id {userId} doesn't exist.");
 
-                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budgetId),
-                    (b => b.Transactions, t => ((Transaction)t).User), (b => b.UserBudgets, null));
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.Transactions, t => ((Transaction)t).User, null),
+                    (b => b.UserBudgets, null, null),
+                    (b => b.Transactions, t => ((Transaction)t).TransactionPayBacks, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -383,7 +474,12 @@ namespace Splitted_backend.Controllers
                     userName: userName
                 );
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
+                
                 List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
+
+                decimal debt = (budget.BudgetType.Equals(BudgetTypeEnum.Personal)
+                    || budget.BudgetType.Equals(BudgetTypeEnum.Family)) ? 0
+                    : ModeManager.GetUserDebt(budget, userId, budget.UserBudgets.Count());
 
                 InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactionsFiltered);
                 BudgetTransactionsGetDTO budgetTransactionsGetDTO = new BudgetTransactionsGetDTO
@@ -391,6 +487,7 @@ namespace Splitted_backend.Controllers
                     Transactions = transactionsFilteredDTO,
                     Income = incomeExpensesDTO.Income,
                     Expenses = incomeExpensesDTO.Expenses,
+                    Debt = debt,
                 };
                 return Ok(budgetTransactionsGetDTO);
             }

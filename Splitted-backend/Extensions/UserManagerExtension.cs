@@ -36,7 +36,8 @@ namespace Splitted_backend.Extensions
         }
 
         public static async Task<User?> FindByIdWithIncludesAsync(this UserManager<User> userManager, Guid userId,
-            params (Expression<Func<User, object>> include, Expression<Func<object, object>>? thenInclude)[] userIncludes)
+            params (Expression<Func<User, object>> include, Expression<Func<object, object>>? thenInclude,
+            Expression<Func<object, object>>? thenThenInclude)[] userIncludes)
         {
             return await userManager.Users
                 .IncludeMultiple(userIncludes)
@@ -44,7 +45,8 @@ namespace Splitted_backend.Extensions
         }
 
         public static async Task<List<User>> FindMultipleByIdsWithIncludesAsync(this UserManager<User> userManager, 
-            IEnumerable<Guid> userIds, params (Expression<Func<User, object>> include, Expression<Func<object, object>>? thenInclude)[] userIncludes)
+            IEnumerable<Guid> userIds, params (Expression<Func<User, object>> include, 
+            Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] userIncludes)
         {
             return await userManager.Users
                 .IncludeMultiple(userIncludes)

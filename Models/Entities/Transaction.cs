@@ -45,6 +45,8 @@ namespace Models.Entities
 
         public Transaction? DuplicatedTransaction { get; set; } = null;
 
+        public List<TransactionPayBack> TransactionPayBacks { get; set; } = new();
+
 
         public override bool Equals(object? obj)
         {
@@ -54,6 +56,20 @@ namespace Models.Entities
 
             return false;
         }
+
+        public Transaction Copy()
+            => new Transaction
+            {
+                Amount = Amount,
+                Currency = Currency,
+                Date = Date,
+                Description = Description,
+                TransactionType = TransactionType,
+                BankCategory = BankCategory,
+                AutoCategory = AutoCategory,
+                UserCategory = UserCategory,
+                UserId = UserId,
+            };
 
         public override int GetHashCode()
         {

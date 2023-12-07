@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Models.DTOs.Outgoing.TransactionPayBack;
 using Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,8 @@ namespace Models.DTOs.Outgoing.Transaction
 
         public string? AvatarImage { get; set; }
 
-        public TransactionDuplicatedGetDTO? DuplicatedTransaction { get; set; } 
+        public TransactionDuplicatedGetDTO? DuplicatedTransaction { get; set; }
+
+        public List<TransactionPayBackGetDTO> TransactionPayBacks { get; set; } = new();
     }
 }

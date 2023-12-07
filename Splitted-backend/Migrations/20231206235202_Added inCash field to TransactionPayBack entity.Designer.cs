@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Splitted_backend.DbContexts;
 
@@ -11,9 +12,11 @@ using Splitted_backend.DbContexts;
 namespace Splitted_backend.Migrations
 {
     [DbContext(typeof(SplittedDbContext))]
-    partial class SplittedDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231206235202_Added inCash field to TransactionPayBack entity")]
+    partial class AddedinCashfieldtoTransactionPayBackentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,10 +176,6 @@ namespace Splitted_backend.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

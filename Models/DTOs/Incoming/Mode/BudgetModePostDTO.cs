@@ -10,9 +10,12 @@ using System.Threading.Tasks;
 
 namespace Models.DTOs.Incoming.Mode
 {
-    public class FamilyModePostDTO
+    public class BudgetModePostDTO
     {
         public BankNameEnum? Bank { get; set; }
+
+        [Required]
+        public string Name { get; set; }
 
         [Required]
         public string Currency { get; set; }

@@ -53,19 +53,19 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or family member not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddFamilyMode([FromRoute, BindRequired] Guid familyMemberId, 
-            [FromBody] FamilyModePostDTO familyModePostDTO)
+            [FromBody] BudgetModePostDTO familyModePostDTO)
         {
             try
             {
                 if (familyModePostDTO is null)
-                    return BadRequest("FamilyModePostDTO object is null.");
+                    return BadRequest("BudgetModePostDTO object is null.");
 
                 if (!ModelState.IsValid)
                     return BadRequest("Invalid model object.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
                 User? user = await userManager.FindByIdWithIncludesAsync(userId, 
-                    (u => u.Budgets, b => ((Budget)b).Transactions));
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -73,7 +73,7 @@ namespace Splitted_backend.Controllers
                     return StatusCode(403, "User already in family mode.");
 
                 User? familyMember = await userManager.FindByIdWithIncludesAsync(familyMemberId, 
-                    (u => u.Budgets, b => ((Budget)b).Transactions));
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
                 if (familyMember is null)
                     return NotFound($"Family member with given id: {familyMemberId} doesn't exist.");
 
@@ -92,6 +92,58 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside AddFamilyMode method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("partner-mode/{partnerId}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Partner mode created", typeof(BudgetCreatedDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid partner")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User or partner already in partner mode")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or partner not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> AddPartnerMode([FromRoute, BindRequired] Guid partnerId,
+            [FromBody] BudgetModePostDTO partnerModePostDTO)
+        {
+            try
+            {
+                if (partnerModePostDTO is null)
+                    return BadRequest("PartnerModePostDTO object is null.");
+
+                if (!ModelState.IsValid)
+                    return BadRequest("Invalid model object.");
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId,
+                    (u => u.Budgets, null, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                    return StatusCode(403, "User already in partner mode.");
+
+                User? partner = await userManager.FindByIdWithIncludesAsync(partnerId,
+                    (u => u.Budgets, null, null));
+                if (partner is null)
+                    return NotFound($"Partner with given id: {partnerId} doesn't exist.");
+
+                if (partner.Id.Equals(user.Id))
+                    return BadRequest("You cannot create partner mode with yourself.");
+
+                if (partner.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                    return StatusCode(403, "Partner already in partner mode.");
+
+                Budget partnerBudget = await ModeManager.CreatePartnerMode(repositoryWrapper, user, partner,
+                    partnerModePostDTO);
+                BudgetCreatedDTO partnerBudgetCreatedDTO = mapper.Map<BudgetCreatedDTO>(partnerBudget);
+
+                return CreatedAtAction("AddPartnerMode", partnerBudgetCreatedDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside AddPartnerMode method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
