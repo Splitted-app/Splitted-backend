@@ -64,6 +64,27 @@ namespace Splitted_backend.Managers
             return partnerBudget;
         }
 
+        public static async Task<Budget> CreateTemporaryMode(IRepositoryWrapper repositoryWrapper, User firstUser,
+            List<User> otherUsers, BudgetModePostDTO temporaryModePostDTO)
+        {
+            Budget temporaryBudget = new Budget
+            {
+                BudgetType = BudgetTypeEnum.Temporary,
+                Name = temporaryModePostDTO.Name,
+                Currency = temporaryModePostDTO.Currency,
+                Bank = temporaryModePostDTO.Bank,
+                BudgetBalance = 0,
+                CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
+            };
+
+            repositoryWrapper.Budgets.Create(temporaryBudget);
+            firstUser.Budgets.Add(temporaryBudget);
+            otherUsers.ForEach(ou => ou.Budgets.Add(temporaryBudget));
+
+            await repositoryWrapper.SaveChanges();
+            return temporaryBudget;
+        }
+
         public static void DeterminePayBacks(List<Transaction> transactions, Guid userId, List<Guid> otherUserIds)
         {
             foreach (Transaction transaction in transactions)
@@ -127,31 +148,26 @@ namespace Splitted_backend.Managers
         {
             decimal debt = budget.Transactions.Aggregate(0M, (current, next) =>
             {
-                if (!next.TransactionPayBacks.Any(tpb => tpb.OwingUserId?.Equals(userId) ?? false))
-                    return current;
-
                 return current + next.TransactionPayBacks.Aggregate(0M, (currentDebt, nextPayBack) =>
-                    {
-                        if (!nextPayBack.TransactionPayBackStatus.Equals(TransactionPayBackStatusEnum.PaidBack))
-                            return currentDebt + nextPayBack.Amount;
-                        else
-                            return currentDebt;
-                    });
+                {
+                    if (nextPayBack.OwingUserId.Equals(userId) && 
+                    !nextPayBack.TransactionPayBackStatus.Equals(TransactionPayBackStatusEnum.PaidBack))
+                        return currentDebt + nextPayBack.Amount;
+                    else
+                        return currentDebt;
+                });
             });
 
             decimal income = budget.Transactions.Aggregate(0M, (current, next) =>
             {
-                if (next.TransactionPayBacks.Any(tpb => tpb.OwingUserId?.Equals(userId) ?? false))
-                    return current;
-
-                return current + (Math.Abs(next.Amount) - Math.Abs(next.Amount) / usersNumber)
-                    + next.TransactionPayBacks.Aggregate(0M, (currentIncome, nextPayBack) =>
-                    {
-                        if (nextPayBack.TransactionPayBackStatus.Equals(TransactionPayBackStatusEnum.PaidBack))
-                            return currentIncome + nextPayBack.Amount;
-                        else
-                            return currentIncome;
-                    });
+                return current + next.TransactionPayBacks.Aggregate(0M, (currentIncome, nextPayBack) =>
+                {
+                    if (nextPayBack.OwedUserId.Equals(userId) &&
+                    !nextPayBack.TransactionPayBackStatus.Equals(TransactionPayBackStatusEnum.PaidBack))
+                        return currentIncome + Math.Abs(nextPayBack.Amount);
+                    else
+                        return currentIncome;
+                });
             });
 
             return debt + income;
