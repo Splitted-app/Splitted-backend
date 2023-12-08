@@ -121,7 +121,7 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Partner)))
                     return StatusCode(403, "User already in partner mode.");
 
                 User? partner = await userManager.FindByIdWithIncludesAsync(partnerId,
@@ -132,7 +132,7 @@ namespace Splitted_backend.Controllers
                 if (partner.Id.Equals(user.Id))
                     return BadRequest("You cannot create partner mode with yourself.");
 
-                if (partner.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Family)))
+                if (partner.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Partner)))
                     return StatusCode(403, "Partner already in partner mode.");
 
                 Budget partnerBudget = await ModeManager.CreatePartnerMode(repositoryWrapper, user, partner,
@@ -144,6 +144,61 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside AddPartnerMode method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPost("temporary-mode/{*userIds}")]
+        [SwaggerResponse(StatusCodes.Status201Created, "Temporary mode created", typeof(BudgetCreatedDTO))]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid user")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> AddTemporaryMode([FromRoute, BindRequired] string userIds,
+            [FromBody] BudgetModePostDTO temporaryModePostDTO)
+        {
+            try
+            {
+                if (temporaryModePostDTO is null)
+                    return BadRequest("TemporaryModePostDTO object is null.");
+
+                if (!ModelState.IsValid)
+                    return BadRequest("Invalid model object.");
+
+                List<Guid> userIdsList = new List<Guid>();
+                List<string> userIdsStrings = userIds.Split("/")
+                    .ToList();
+
+                foreach (string userIdString in userIdsStrings)
+                {
+                    Guid otherUserId;
+                    bool parsed = Guid.TryParse(userIdString, out otherUserId);
+                    if (parsed)
+                        userIdsList.Add(otherUserId);
+                    else
+                        return BadRequest("Some of userIds are invalid.");
+                }
+
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId,
+                    (u => u.Budgets, null, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                List<User> otherUsers = await userManager.FindMultipleByIdsWithIncludesAsync(userIdsList);
+                if (userIdsList.Count != otherUsers.Count)
+                    return NotFound("Some of users were not found.");
+
+                Budget temporaryBudget = await ModeManager.CreateTemporaryMode(repositoryWrapper, user, otherUsers,
+                    temporaryModePostDTO);
+                BudgetCreatedDTO temporaryBudgetCreatedDTO = mapper.Map<BudgetCreatedDTO>(temporaryBudget);
+
+                return CreatedAtAction("AddTemporaryMode", temporaryBudgetCreatedDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside AddTemporaryMode method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
