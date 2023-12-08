@@ -18,6 +18,12 @@ namespace Models.DTOs.Outgoing.TransactionPayBack
 
         public TransactionPayBackStatusEnum TransactionPayBackStatus { get; set; }
 
+        public bool InCash { get; set; }
+
         public TransactionDuplicatedGetDTO? PayBackTransaction { get; set; }
+
+        public string UserName { get; set; }
+
+        public string? AvatarImage { get; set; }
     }
 }

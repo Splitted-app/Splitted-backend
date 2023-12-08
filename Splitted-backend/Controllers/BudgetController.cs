@@ -459,7 +459,8 @@ namespace Splitted_backend.Controllers
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
                     (b => b.Transactions, t => ((Transaction)t).User, null),
                     (b => b.UserBudgets, null, null),
-                    (b => b.Transactions, t => ((Transaction)t).TransactionPayBacks, null));
+                    (b => b.Transactions, t => ((Transaction)t).TransactionPayBacks, 
+                    tpb => ((TransactionPayBack)tpb).OwingUser));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
@@ -474,14 +475,20 @@ namespace Splitted_backend.Controllers
                     userName: userName
                 );
                 List<Transaction> transactionsFiltered = transactionsFilter.GetFilteredTransactions(budget.Transactions);
-                
-                List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
 
                 decimal debt = (budget.BudgetType.Equals(BudgetTypeEnum.Personal)
                     || budget.BudgetType.Equals(BudgetTypeEnum.Family)) ? 0
                     : ModeManager.GetUserDebt(budget, userId, budget.UserBudgets.Count());
-
                 InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactionsFiltered);
+
+                foreach (Transaction transactionFiltered in transactionsFiltered)
+                {
+                    transactionFiltered.TransactionPayBacks = transactionFiltered.TransactionPayBacks
+                        .Where(tpb => tpb.OwedUserId.Equals(userId))
+                        .ToList();
+                }
+
+                List<TransactionGetDTO> transactionsFilteredDTO = mapper.Map<List<TransactionGetDTO>>(transactionsFiltered);
                 BudgetTransactionsGetDTO budgetTransactionsGetDTO = new BudgetTransactionsGetDTO
                 {
                     Transactions = transactionsFilteredDTO,

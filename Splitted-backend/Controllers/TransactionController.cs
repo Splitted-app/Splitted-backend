@@ -207,7 +207,7 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                if (!transaction.TransactionPayBacks.Any(tpb => tpb.UserId.Equals(userId)))
+                if (!transaction.TransactionPayBacks.Any(tpb => tpb.OwingUserId.Equals(userId)))
                     return StatusCode(403, "You are not allowed to pay yourself back.");
 
                 Guid budgetId = transaction.BudgetId;
@@ -259,7 +259,7 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                if (transaction.TransactionPayBacks.Any(tpb => tpb.UserId.Equals(userId)))
+                if (transaction.TransactionPayBacks.Any(tpb => tpb.OwingUserId.Equals(userId)))
                     return StatusCode(403, "You are not allowed to resolve payback.");
 
                 Guid budgetId = transaction.BudgetId;
@@ -278,6 +278,12 @@ namespace Splitted_backend.Controllers
 
                 ModeManager.ResolvePayback(transaction, transactionPayBackId, accept);
                 repositoryWrapper.Transactions.Update(transaction);
+
+                if (transaction.TransactionPayBacks.All(tpb => tpb.TransactionPayBackStatus
+                    .Equals(TransactionPayBackStatusEnum.PaidBack)))
+                {
+                    repositoryWrapper.Transactions.Delete(transaction);
+                }
                 await repositoryWrapper.SaveChanges();
 
                 return NoContent();

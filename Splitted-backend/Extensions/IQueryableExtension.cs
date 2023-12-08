@@ -13,8 +13,8 @@ namespace Splitted_backend.Extensions
                 query = includes.Aggregate(query, (current, include) =>
                 {
                     var includableCurrent = current.Include(include.include);
-                    if (include.thenInclude is not null) return includableCurrent.ThenInclude(include.thenInclude);
-                    if (include.thenThenInclude is not null) return includableCurrent.ThenInclude(include.thenThenInclude);
+                    if (include.thenInclude is not null) includableCurrent = includableCurrent.ThenInclude(include.thenInclude);
+                    if (include.thenThenInclude is not null) includableCurrent = includableCurrent.ThenInclude(include.thenThenInclude);
                     return includableCurrent;
                 });
 

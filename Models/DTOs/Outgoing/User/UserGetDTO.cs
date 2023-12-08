@@ -15,5 +15,7 @@ namespace Models.DTOs.Outgoing.User
         public string Username { get; set; }
 
         public string? AvatarImage { get; set; }
+
+        public bool EmailConfirmed { get; set; }
     }
 }

@@ -25,7 +25,7 @@ namespace Splitted_backend.Managers
                 Currency = familyModePostDTO.Currency,
                 Bank = familyModePostDTO.Bank,
                 BudgetBalance = firstPersonalBudget.BudgetBalance + secondPersonalBudget.BudgetBalance,
-                CreationDate = DateTime.Now,
+                CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
             };
 
             repositoryWrapper.Transactions.FindDuplicates(secondPersonalBudget.Transactions, firstPersonalBudget.Transactions);
@@ -53,7 +53,7 @@ namespace Splitted_backend.Managers
                 Currency = partnerModePostDTO.Currency,
                 Bank = partnerModePostDTO.Bank,
                 BudgetBalance = 0,
-                CreationDate = DateTime.Now,
+                CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
             };
 
             repositoryWrapper.Budgets.Create(partnerBudget);
@@ -71,13 +71,14 @@ namespace Splitted_backend.Managers
                 List<TransactionPayBack> transactionPayBacks = new List<TransactionPayBack>();
 
                 if (transaction.Amount > 0)
-                {
-                    transactionPayBacks.Add(new TransactionPayBack
+                { 
+                    otherUserIds.ForEach(ui => transactionPayBacks.Add(new TransactionPayBack
                     {
                         Amount = -transaction.Amount / (otherUserIds.Count + 1),
                         TransactionPayBackStatus = TransactionPayBackStatusEnum.Unpaid,
-                        UserId = userId
-                    });
+                        OwingUserId = userId,
+                        OwedUserId = ui,
+                    }));
                 }
                 else
                 {
@@ -85,7 +86,8 @@ namespace Splitted_backend.Managers
                     {
                         Amount = transaction.Amount / (otherUserIds.Count + 1),
                         TransactionPayBackStatus = TransactionPayBackStatusEnum.Unpaid,
-                        UserId = ui
+                        OwingUserId = ui,
+                        OwedUserId = userId,
                     }));
                 }
 
@@ -96,7 +98,7 @@ namespace Splitted_backend.Managers
         public static void MakePayback(Transaction transaction, Guid? paybackTransactionId, Guid userId)
         {
             TransactionPayBack transactionPayBack = transaction.TransactionPayBacks
-                .First(tpb => tpb.UserId.Equals(userId));
+                .First(tpb => tpb.OwingUserId.Equals(userId));
 
             transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.WaitingForApproval;
 
@@ -125,16 +127,21 @@ namespace Splitted_backend.Managers
         {
             decimal debt = budget.Transactions.Aggregate(0M, (current, next) =>
             {
-                TransactionPayBack? transactionPayBack = next.TransactionPayBacks
-                    .FirstOrDefault(tpb => tpb.UserId is not null && tpb.UserId.Equals(userId)
-                        && !tpb.TransactionPayBackStatus.Equals(TransactionPayBackStatusEnum.PaidBack));
+                if (!next.TransactionPayBacks.Any(tpb => tpb.OwingUserId?.Equals(userId) ?? false))
+                    return current;
 
-                return current + (transactionPayBack?.Amount ?? 0);
+                return current + next.TransactionPayBacks.Aggregate(0M, (currentDebt, nextPayBack) =>
+                    {
+                        if (!nextPayBack.TransactionPayBackStatus.Equals(TransactionPayBackStatusEnum.PaidBack))
+                            return currentDebt + nextPayBack.Amount;
+                        else
+                            return currentDebt;
+                    });
             });
 
             decimal income = budget.Transactions.Aggregate(0M, (current, next) =>
             {
-                if (next.TransactionPayBacks.Any(tpb => tpb.UserId?.Equals(userId) ?? false))
+                if (next.TransactionPayBacks.Any(tpb => tpb.OwingUserId?.Equals(userId) ?? false))
                     return current;
 
                 return current + (Math.Abs(next.Amount) - Math.Abs(next.Amount) / usersNumber)

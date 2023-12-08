@@ -31,8 +31,12 @@ namespace Models.Entities
 
         public Transaction? PayBackTransaction { get; set; } = null;
 
-        public Guid? UserId { get; set; }
+        public Guid? OwingUserId { get; set; }
 
-        public User? User { get; set; } = null;
+        public User? OwingUser { get; set; } = null;
+
+        public Guid? OwedUserId { get; set; }
+
+        public User? OwedUser { get; set; } = null;
     }
 }
