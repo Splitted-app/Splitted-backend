@@ -316,6 +316,9 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
+                if (!user.EmailConfirmed)
+                    return StatusCode(403, "You are not allowed to train AI model with your email not cofirmed.");
+
                 if (user.Transactions.Count == 0)
                     return BadRequest("To train AI model you must have at least 1 transaction.");
 
