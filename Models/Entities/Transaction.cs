@@ -45,7 +45,10 @@ namespace Models.Entities
 
         public Transaction? DuplicatedTransaction { get; set; } = null;
 
+        public List<Transaction> DuplicatedTransactions { get; set; } = new();
+
         public List<TransactionPayBack> TransactionPayBacks { get; set; } = new();
+
 
 
         public override bool Equals(object? obj)

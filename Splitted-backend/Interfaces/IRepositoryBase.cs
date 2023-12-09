@@ -17,7 +17,8 @@ namespace Splitted_backend.Interfaces
 
         Task<List<T>> GetAllAsync();
 
-        Task<List<T>> GetEntitiesByConditionAsync(Expression<Func<T, bool>> expression);
+        Task<List<T>> GetEntitiesByConditionAsync(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include,
+            Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes);
 
         T? GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include,
             Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes);

@@ -134,7 +134,8 @@ namespace Splitted_backend.Controllers
                         return BadRequest("Some of transactionIds are invalid.");
                 }
 
-                List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByConditionAsync(t => transactionIdsList.Contains(t.Id));
+                List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByConditionAsync(t => transactionIdsList.Contains(t.Id),
+                    (t => t.DuplicatedTransactions, null , null));
                 if (transactionIdsList.Count != transactions.Count)
                     return NotFound("Some of transactions were not found.");
 
@@ -156,6 +157,9 @@ namespace Splitted_backend.Controllers
                     .Where(t => t.Date >= budget.CreationDate)
                     .ToList());
                 budget.BudgetBalance -= (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
+
+                transactions.ForEach(t => t.DuplicatedTransactions.ForEach(dt => dt.DuplicatedTransactionId = null));
+                repositoryWrapper.Transactions.FindDuplicates(budget.Transactions, budget.Transactions);
 
                 repositoryWrapper.Transactions.DeleteMultiple(transactions);
                 repositoryWrapper.Budgets.Update(budget);
