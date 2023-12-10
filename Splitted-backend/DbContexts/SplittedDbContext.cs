@@ -60,6 +60,9 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<TransactionPayBack>()
                 .Property(tpb => tpb.TransactionPayBackStatus)
                 .HasConversion(new EnumToStringConverter<TransactionPayBackStatusEnum>());
+            modelBuilder.Entity<Goal>()
+                .Property(bg => bg.GoalType)
+                .HasConversion(new EnumToStringConverter<GoalTypeEnum>());
         }
     }
 }
