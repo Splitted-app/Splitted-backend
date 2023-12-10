@@ -11,6 +11,8 @@ namespace Splitted_backend.Repositories
 
         private IBudgetRepository budgets;
 
+        private IGoalRepository goals;
+
 
         public RepositoryWrapper(SplittedDbContext splittedDbContext)
         {
@@ -33,6 +35,15 @@ namespace Splitted_backend.Repositories
             {
                 budgets ??= new BudgetRepository(splittedDbContext);
                 return budgets;
+            }
+        }
+
+        public IGoalRepository Goals
+        {
+            get
+            {
+                goals ??= new GoalRepository(splittedDbContext);
+                return goals;
             }
         }
 

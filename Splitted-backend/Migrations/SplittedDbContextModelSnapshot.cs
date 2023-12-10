@@ -207,12 +207,12 @@ namespace Splitted_backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsMain")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Percentage")
-                        .HasColumnType("float");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");

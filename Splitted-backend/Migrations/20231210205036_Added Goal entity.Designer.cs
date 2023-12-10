@@ -12,7 +12,7 @@ using Splitted_backend.DbContexts;
 namespace Splitted_backend.Migrations
 {
     [DbContext(typeof(SplittedDbContext))]
-    [Migration("20231210193550_Added Goal entity")]
+    [Migration("20231210205036_Added Goal entity")]
     partial class AddedGoalentity
     {
         /// <inheritdoc />
@@ -210,12 +210,12 @@ namespace Splitted_backend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsMain")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Percentage")
-                        .HasColumnType("float");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier");

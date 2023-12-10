@@ -17,12 +17,12 @@ namespace Splitted_backend.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Amount = table.Column<decimal>(type: "money", nullable: false),
-                    Percentage = table.Column<double>(type: "float", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     GoalType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Deadline = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsMain = table.Column<bool>(type: "bit", nullable: false),
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
