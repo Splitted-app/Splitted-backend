@@ -53,7 +53,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or family member not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddFamilyMode([FromRoute, BindRequired] Guid familyMemberId, 
-            [FromBody] BudgetModePostDTO familyModePostDTO)
+            [FromBody] FamilyModePostDTO familyModePostDTO)
         {
             try
             {
@@ -105,7 +105,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or partner not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddPartnerMode([FromRoute, BindRequired] Guid partnerId,
-            [FromBody] BudgetModePostDTO partnerModePostDTO)
+            [FromBody] PartnerModePostDTO partnerModePostDTO)
         {
             try
             {
@@ -156,7 +156,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddTemporaryMode([FromRoute, BindRequired] string userIds,
-            [FromBody] BudgetModePostDTO temporaryModePostDTO)
+            [FromBody] TemporaryModePostDTO temporaryModePostDTO)
         {
             try
             {

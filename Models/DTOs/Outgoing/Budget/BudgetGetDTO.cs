@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Models.DTOs.Outgoing.User;
 using Models.Enums;
 using System;
 using System.Collections.Generic;
@@ -9,19 +10,8 @@ using System.Threading.Tasks;
 
 namespace Models.DTOs.Outgoing.Budget
 {
-    public class BudgetGetDTO
+    public class BudgetGetDTO : UserBudgetGetDTO
     {
-        public Guid Id { get; set; }
-
-        public BankNameEnum? Bank { get; set; }
-
-        public BudgetTypeEnum BudgetType { get; set; }
-
-        public string Name { get; set; }
-
-        public string Currency { get; set; }
-
-        [Column(TypeName = "money")]
-        public decimal BudgetBalance { get; set; }
+        public List<UserGetDTO> Users { get; set; }
     }
 }

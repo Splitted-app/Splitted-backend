@@ -12,6 +12,7 @@ namespace Splitted_backend.MapperProfiles
         {
             CreateMap<BudgetPostDTO, Budget>()
                 .ForMember(dest => dest.BudgetType, opt => opt.MapFrom(src => BudgetTypeEnum.Personal))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => string.Empty))
                 .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"))));
 
             CreateMap<BudgetPutDTO, Budget>()
@@ -20,6 +21,7 @@ namespace Splitted_backend.MapperProfiles
                 .ForMember(dest => dest.Currency, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Currency))))
                 .ForMember(dest => dest.BudgetBalance, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.BudgetBalance))));
             CreateMap<Budget, BudgetCreatedDTO>();
+            CreateMap<Budget, UserBudgetGetDTO>();
             CreateMap<Budget, BudgetGetDTO>();
         }
     }

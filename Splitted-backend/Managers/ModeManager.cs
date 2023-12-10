@@ -13,7 +13,7 @@ namespace Splitted_backend.Managers
     public static class ModeManager
     {
         public static async Task<Budget> CreateFamilyMode(IRepositoryWrapper repositoryWrapper, User firstUser,
-            User secondUser, BudgetModePostDTO familyModePostDTO)
+            User secondUser, FamilyModePostDTO familyModePostDTO)
         {
             Budget firstPersonalBudget = firstUser.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal));
             Budget secondPersonalBudget = secondUser.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal));
@@ -44,15 +44,13 @@ namespace Splitted_backend.Managers
         }
 
         public static async Task<Budget> CreatePartnerMode(IRepositoryWrapper repositoryWrapper, User firstUser, 
-            User secondUser, BudgetModePostDTO partnerModePostDTO)
+            User secondUser, PartnerModePostDTO partnerModePostDTO)
         {
             Budget partnerBudget = new Budget
             {
                 BudgetType = BudgetTypeEnum.Partner,
                 Name = partnerModePostDTO.Name,
-                Currency = partnerModePostDTO.Currency,
-                Bank = partnerModePostDTO.Bank,
-                BudgetBalance = 0,
+                Currency = string.Empty,
                 CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
             };
 
@@ -65,15 +63,13 @@ namespace Splitted_backend.Managers
         }
 
         public static async Task<Budget> CreateTemporaryMode(IRepositoryWrapper repositoryWrapper, User firstUser,
-            List<User> otherUsers, BudgetModePostDTO temporaryModePostDTO)
+            List<User> otherUsers, TemporaryModePostDTO temporaryModePostDTO)
         {
             Budget temporaryBudget = new Budget
             {
                 BudgetType = BudgetTypeEnum.Temporary,
                 Name = temporaryModePostDTO.Name,
-                Currency = temporaryModePostDTO.Currency,
-                Bank = temporaryModePostDTO.Bank,
-                BudgetBalance = 0,
+                Currency = string.Empty,
                 CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
             };
 

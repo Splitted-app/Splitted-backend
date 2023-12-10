@@ -77,11 +77,11 @@ namespace Splitted_backend.Controllers
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
-                    (b => b.UserBudgets, null, null));
+                    (b => b.Users, null, null));
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
-                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                bool ifBudgetValid = budget.Users.Any(ub => ub.Id.Equals(userId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 

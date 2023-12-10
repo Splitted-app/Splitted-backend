@@ -356,7 +356,7 @@ namespace Splitted_backend.Controllers
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("budgets")]
-        [SwaggerResponse(StatusCodes.Status200OK, "User's budgets returned", typeof(List<BudgetGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status200OK, "User's budgets returned", typeof(List<UserBudgetGetDTO>))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
@@ -389,7 +389,7 @@ namespace Splitted_backend.Controllers
                 List<Budget> filteredBudgets = user.Budgets
                     .Where(b => budgetType is null || budgetTypeEnums.Any(bte => bte.Equals(b.BudgetType)))
                     .ToList();
-                List<BudgetGetDTO> budgets = mapper.Map<List<BudgetGetDTO>>(filteredBudgets);
+                List<UserBudgetGetDTO> budgets = mapper.Map<List<UserBudgetGetDTO>>(filteredBudgets);
 
                 return Ok(budgets); 
             }

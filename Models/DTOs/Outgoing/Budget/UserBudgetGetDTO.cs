@@ -2,22 +2,26 @@
 using Models.Enums;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Models.DTOs.Incoming.Budget
+namespace Models.DTOs.Outgoing.Budget
 {
-    public class BudgetPostDTO
+    public class UserBudgetGetDTO
     {
+        public Guid Id { get; set; }
+
         public BankNameEnum? Bank { get; set; }
 
-        [Required]
+        public BudgetTypeEnum BudgetType { get; set; }
+
+        public string Name { get; set; }
+
         public string Currency { get; set; }
 
         [Column(TypeName = "money")]
-        public decimal? BudgetBalance { get; set; }
+        public decimal BudgetBalance { get; set; }
     }
 }
