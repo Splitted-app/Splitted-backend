@@ -15,6 +15,8 @@ namespace Splitted_backend.DbContexts
 
         public DbSet<Budget> Budgets { get; set; }
 
+        public DbSet<Goal> Goals { get; set; }
+
 
         public SplittedDbContext(DbContextOptions<SplittedDbContext> dbContextOptions)
             : base(dbContextOptions)
@@ -60,6 +62,9 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<TransactionPayBack>()
                 .Property(tpb => tpb.TransactionPayBackStatus)
                 .HasConversion(new EnumToStringConverter<TransactionPayBackStatusEnum>());
+            modelBuilder.Entity<Goal>()
+                .Property(bg => bg.GoalType)
+                .HasConversion(new EnumToStringConverter<GoalTypeEnum>());
         }
     }
 }

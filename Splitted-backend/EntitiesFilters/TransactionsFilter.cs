@@ -44,8 +44,8 @@ namespace Splitted_backend.EntitiesFilters
                 {
                     string? userCategory = t.UserCategory is null ? null : t.UserCategory.ToLower();
                     return category is null || 
-                    (category.Equals("uncategorized") && string.IsNullOrWhiteSpace(userCategory)) ||
-                    (userCategory is not null && userCategory.Contains(category));
+                        (category.Equals("uncategorized") && string.IsNullOrWhiteSpace(userCategory)) ||
+                        (userCategory is not null && userCategory.Contains(category));
                 })
                 .ToList();
 

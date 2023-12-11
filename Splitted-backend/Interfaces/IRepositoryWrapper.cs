@@ -5,6 +5,8 @@
         ITransactionRepository Transactions { get; }
 
         IBudgetRepository Budgets { get; }
+
+        IGoalRepository Goals { get; }
         
         Task SaveChanges();
     }

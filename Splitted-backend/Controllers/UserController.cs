@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MimeKit.Encodings;
 using Models.DTOs.Incoming.User;
 using Models.DTOs.Outgoing.Budget;
+using Models.DTOs.Outgoing.Goal;
 using Models.DTOs.Outgoing.User;
 using Models.EmailModels;
 using Models.Entities;
@@ -433,7 +434,7 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> GetFriends()
+        public async Task<IActionResult> GetUserFriends()
         {
             try
             {
@@ -447,7 +448,7 @@ namespace Splitted_backend.Controllers
             }
             catch (Exception exception)
             {
-                logger.LogError($"Error occurred inside GetFriends method. {exception}.");
+                logger.LogError($"Error occurred inside GetUserFriends method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
@@ -541,6 +542,70 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside DeleteFriends method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("main-goal")]
+        [SwaggerResponse(StatusCodes.Status200OK, "User's main goal returned", typeof(GoalGetDTO))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetUserMainGoal()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Goals, null, null),
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                Budget budget = user.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal) ||
+                    b.BudgetType.Equals(BudgetTypeEnum.Family));
+                Goal? mainGoal = user.Goals.FirstOrDefault(g => g.IsMain);
+
+                GoalGetDTO? mainGoalGetDTO = mainGoal is null ? null : mapper.Map<GoalGetDTO>(mainGoal);
+                if (mainGoalGetDTO is not null)
+                    GoalManager.CountPercentages(new List<GoalGetDTO> { mainGoalGetDTO }, budget);
+
+                return Ok(mainGoalGetDTO);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetUserMainGoal method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet("goals")]
+        [SwaggerResponse(StatusCodes.Status200OK, "User's goals returned", typeof(List<GoalGetDTO>))]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> GetUserGoals()
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Goals, null, null), 
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                Budget budget = user.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal) ||
+                    b.BudgetType.Equals(BudgetTypeEnum.Family));
+
+                List<GoalGetDTO> userGoals = mapper.Map<List<GoalGetDTO>>(user.Goals);
+                GoalManager.CountPercentages(userGoals, budget);
+
+                return Ok(userGoals);
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside GetUserGoals method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
