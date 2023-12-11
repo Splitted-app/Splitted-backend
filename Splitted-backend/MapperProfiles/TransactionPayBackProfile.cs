@@ -15,6 +15,7 @@ namespace Splitted_backend.MapperProfiles
                     : src.OwingUser.AvatarImage))
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.OwingUser == null ? null
                     : src.OwingUser.UserName))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => Math.Round(src.Amount, 2)))
                 .AfterMap<GetPayBackTransaction>();
         }
 

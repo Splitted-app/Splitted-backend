@@ -8,8 +8,8 @@ namespace Models.Enums
 {
     public enum GoalTypeEnum
     {
-        BudgetBalance,
+        AccountBalance,
         AverageExpenses,
-        MaxExpenses,
+        ExpensesLimit,
     }
 }

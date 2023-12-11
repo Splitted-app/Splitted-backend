@@ -11,7 +11,7 @@ namespace Splitted_backend.MapperProfiles
         public GoalProfile()
         {
             CreateMap<GoalPostDTO, Goal>()
-                .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd"))))
+                .ForMember(dest => dest.CreationDate, opt => opt.MapFrom(src => DateTime.Today))
                 .ForMember(dest => dest.Category, opt => opt.MapFrom(src => src.Category == null ? null : src.Category.ToLower()));
 
             CreateMap<GoalPutDTO, Goal>()

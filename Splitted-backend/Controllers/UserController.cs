@@ -557,13 +557,19 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Goals, null, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Goals, null, null),
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
+                Budget budget = user.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal) ||
+                    b.BudgetType.Equals(BudgetTypeEnum.Family));
                 Goal? mainGoal = user.Goals.FirstOrDefault(g => g.IsMain);
 
                 GoalGetDTO? mainGoalGetDTO = mainGoal is null ? null : mapper.Map<GoalGetDTO>(mainGoal);
+                if (mainGoalGetDTO is not null)
+                    GoalManager.CountPercentages(new List<GoalGetDTO> { mainGoalGetDTO }, budget);
+
                 return Ok(mainGoalGetDTO);
             }
             catch (Exception exception)
@@ -584,11 +590,17 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Goals, null, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Goals, null, null), 
+                    (u => u.Budgets, b => ((Budget)b).Transactions, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
+                Budget budget = user.Budgets.First(b => b.BudgetType.Equals(BudgetTypeEnum.Personal) ||
+                    b.BudgetType.Equals(BudgetTypeEnum.Family));
+
                 List<GoalGetDTO> userGoals = mapper.Map<List<GoalGetDTO>>(user.Goals);
+                GoalManager.CountPercentages(userGoals, budget);
+
                 return Ok(userGoals);
             }
             catch (Exception exception)
