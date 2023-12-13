@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Models.CsvModels;
 using Models.Entities;
@@ -17,6 +18,10 @@ namespace Splitted_backend.DbContexts
 
         public DbSet<Goal> Goals { get; set; }
 
+
+        protected SplittedDbContext() : base()
+        {
+        }
 
         public SplittedDbContext(DbContextOptions<SplittedDbContext> dbContextOptions)
             : base(dbContextOptions)
