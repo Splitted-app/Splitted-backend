@@ -7,6 +7,8 @@ using Models.Enums;
 using Org.BouncyCastle.Security.Certificates;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Models.Entities;
+using Splitted_backend.Repositories;
+using System.Runtime.CompilerServices;
 
 namespace Splitted_backend.Managers
 {
@@ -88,50 +90,8 @@ namespace Splitted_backend.Managers
             {
                 User otherUser = otherUsers[0];
 
-                Budget firstBudget = new Budget
-                {
-                    BudgetType = BudgetTypeEnum.Personal,
-                    Currency = budget.Currency,
-                    Name = string.Empty,
-                    Bank = budget.Bank,
-                    BudgetBalance = 0,
-                    CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
-                };
-
-                Budget secondBudget = new Budget
-                {
-                    BudgetType = BudgetTypeEnum.Personal,
-                    Currency = budget.Currency,
-                    Name = string.Empty,
-                    Bank = budget.Bank,
-                    BudgetBalance = 0,
-                    CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
-                };
-
-                repositoryWrapper.Budgets.Create(secondBudget);
-
-                budget.Transactions.ForEach(t =>
-                {
-                    if (t.UserId.Equals(otherUser.Id)) t.BudgetId = secondBudget.Id;
-                    else t.BudgetId = firstBudget.Id;
-                });
-
-                List<Transaction> secondBudgetTransactions = budget.Transactions
-                    .Where(t => t.BudgetId.Equals(secondBudget.Id))
-                    .ToList();
-
-                otherUser.Budgets.Add(secondBudget);
-
-                if (user is not null)
-                {
-                    repositoryWrapper.Budgets.Create(firstBudget);
-
-                    List<Transaction> firstBudgetTransactions = budget.Transactions
-                        .Where(t => t.BudgetId.Equals(firstBudget.Id))
-                        .ToList();
-
-                    user.Budgets.Add(firstBudget);
-                }
+                CreatePersonalBudgetFromFamilyMode(repositoryWrapper, user, budget);
+                CreatePersonalBudgetFromFamilyMode(repositoryWrapper, otherUser, budget);
             }
             else
             {
@@ -139,10 +99,37 @@ namespace Splitted_backend.Managers
                 {
                     user.Budgets.Remove(budget);
                     budget.Transactions.RemoveAll(t => t.UserId.Equals(user.Id));
+
                     budget.Transactions.ForEach(t => t.TransactionPayBacks.RemoveAll(tpb =>
                         tpb.OwingUserId.Equals(user.Id) || tpb.OwedUserId.Equals(user.Id)));
                 }
             }
+        }
+
+        private static void CreatePersonalBudgetFromFamilyMode(IRepositoryWrapper repositoryWrapper, User? user,
+            Budget familyBudget)
+        {
+            if (user is null)
+                return;
+
+            Budget budget = new Budget
+            {
+                BudgetType = BudgetTypeEnum.Personal,
+                Currency = familyBudget.Currency,
+                Name = string.Empty,
+                Bank = familyBudget.Bank,
+                BudgetBalance = 0,
+                CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
+            };
+
+            repositoryWrapper.Budgets.Create(budget);
+
+            familyBudget.Transactions.ForEach(t =>
+            {
+                if (t.UserId.Equals(user.Id)) t.BudgetId = budget.Id;
+            });
+
+            user.Budgets.Add(budget);
         }
 
         public static void DeterminePayBacks(List<Transaction> transactions, Guid userId, List<Guid> otherUserIds)
