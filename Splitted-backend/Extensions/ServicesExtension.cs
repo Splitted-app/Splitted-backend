@@ -8,6 +8,7 @@ using AuthenticationServer.Managers;
 using Models.EmailModels;
 using ExternalServices.EmailSender;
 using AIService;
+using ExternalServices.StorageClient;
 
 namespace Splitted_backend.Extensions
 {
@@ -16,8 +17,11 @@ namespace Splitted_backend.Extensions
         public static void ConfigureServices(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAutoMapper(typeof(Program));
+
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
             services.AddScoped<IEmailSender, EmailSender>();
+            services.AddScoped<IStorageClient, StorageClient>();
+
             services.AddSingleton(configuration
                 .GetSection("emailConfiguration")
                 .Get<EmailConfiguration>());
