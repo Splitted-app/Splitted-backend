@@ -175,23 +175,37 @@ namespace Splitted_backend.Controllers
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        [HttpPut("{transactionId}/payback/{paybackTransactionId?}")]
+        [HttpPut("{paybackTransactionId?}/payback/{*transactionIds}")]
+        [HttpPut("null/payback/{*transactionIds}")]
         [SwaggerResponse(StatusCodes.Status204NoContent, "Payback updated")]
-        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid query parameter")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid path parameter")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
         [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or is not allowed to pay back")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "Transaction or user not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> PayTransactionBack([FromRoute, BindRequired] Guid transactionId,
+        public async Task<IActionResult> PayTransactionsBack([FromRoute, BindRequired] string transactionIds,
             [FromRoute] Guid? paybackTransactionId)
         {
             try
             {
-                Transaction? transaction = await repositoryWrapper.Transactions
-                    .GetEntityOrDefaultByConditionAsync(t => t.Id.Equals(transactionId), 
+                List<Guid> transactionIdsList = new List<Guid>();
+                List<string> transactionIdsStrings = transactionIds.Split("/")
+                    .ToList();
+
+                foreach (string transactionIdString in transactionIdsStrings)
+                {
+                    Guid transactionId;
+                    bool parsed = Guid.TryParse(transactionIdString, out transactionId);
+                    if (parsed)
+                        transactionIdsList.Add(transactionId);
+                    else
+                        return BadRequest("Some of transactionIds are invalid.");
+                }
+
+                List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByConditionAsync(t => transactionIdsList.Contains(t.Id),
                     (t => t.TransactionPayBacks, null, null));
-                if (transaction is null)
-                    return NotFound($"Transaction with given id: {transactionId} doesn't exist.");
+                if (transactionIdsList.Count != transactions.Count)
+                    return NotFound("Some of transactions were not found.");
 
                 if (paybackTransactionId is not null)
                 {
@@ -211,10 +225,10 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                if (!transaction.TransactionPayBacks.Any(tpb => tpb.OwingUserId.Equals(userId)))
+                if (transactions.Any(t => t.TransactionPayBacks.Any(tpb => tpb.OwedUserId.Equals(userId))))
                     return StatusCode(403, "You are not allowed to pay yourself back.");
 
-                Guid budgetId = transaction.BudgetId;
+                Guid budgetId = transactions[0].BudgetId;
                 Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
                     (b => b.Transactions, null, null));
                 if (budget is null)
@@ -224,15 +238,14 @@ namespace Splitted_backend.Controllers
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
-                ModeManager.MakePayback(transaction, paybackTransactionId, userId);
-                repositoryWrapper.Transactions.Update(transaction);
+                transactions.ForEach(t => ModeManager.MakePayback(t, paybackTransactionId, userId));
                 await repositoryWrapper.SaveChanges();
 
                 return NoContent();
             }
             catch (Exception exception)
             {
-                logger.LogError($"Error occurred inside PayTransactionBack method. {exception}.");
+                logger.LogError($"Error occurred inside PayTransactionsBack method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }
