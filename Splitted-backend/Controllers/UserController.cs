@@ -2,6 +2,7 @@
 using AuthenticationServer.Managers;
 using AutoMapper;
 using ExternalServices.EmailSender;
+using ExternalServices.StorageClient;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -37,6 +38,8 @@ namespace Splitted_backend.Controllers
 
         private IEmailSender emailSender { get; }
 
+        private IStorageClient storageClient { get; }
+
         private UserManager<User> userManager { get; }
 
         private RoleManager<IdentityRole<Guid>> roleManager { get; }
@@ -44,13 +47,15 @@ namespace Splitted_backend.Controllers
         private AuthenticationManager authenticationManager { get; }
 
 
-        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, IEmailSender emailSender, 
-            UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
+        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, 
+            IEmailSender emailSender, IStorageClient storageClient, UserManager<User> userManager, 
+            RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
         {
             this.logger = logger;
             this.mapper = mapper;
             this.repositoryWrapper = repositoryWrapper;
             this.emailSender = emailSender;
+            this.storageClient = storageClient;
             this.userManager = userManager;
             this.roleManager = roleManager;
             this.authenticationManager = new AuthenticationManager(configuration);
@@ -292,6 +297,13 @@ namespace Splitted_backend.Controllers
                     string.Empty : userPutDTO.UserName);
                 if (userFound is not null && !user.Equals(userFound))
                     return Conflict($"User with username {userPutDTO.UserName} already exists.");
+
+                if (userPutDTO.AvatarImage is not null)
+                {
+                    userPutDTO.AvatarImage = await storageClient.UploadProfilePicture(userPutDTO.AvatarImage);
+                    if (userPutDTO.AvatarImage is null)
+                        return BadRequest("Invalid profile picture.");
+                }
 
                 mapper.Map(userPutDTO, user);
                 await userManager.UpdateAsync(user);
