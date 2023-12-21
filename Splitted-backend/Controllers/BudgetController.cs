@@ -85,7 +85,11 @@ namespace Splitted_backend.Controllers
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
+                budget.Users = budget.Users
+                    .Where(u => !u.Id.Equals(userId))
+                    .ToList();
                 BudgetGetDTO budgetGetDTO = mapper.Map<BudgetGetDTO>(budget);
+
                 return Ok(budgetGetDTO);
             }
             catch (Exception exception)

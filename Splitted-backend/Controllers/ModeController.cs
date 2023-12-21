@@ -135,6 +135,10 @@ namespace Splitted_backend.Controllers
                 if (partner.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Partner)))
                     return StatusCode(403, "Partner already in partner mode.");
 
+                Budget? userFamilyBudget = user.Budgets.FirstOrDefault(b => b.BudgetType.Equals(BudgetTypeEnum.Family));
+                if (userFamilyBudget is not null && partner.Budgets.Any(b => b.Id.Equals(userFamilyBudget.Id)))
+                    return StatusCode(403, "You cannot create partner mode with your family member.");
+
                 Budget partnerBudget = await ModeManager.CreatePartnerMode(repositoryWrapper, user, partner,
                     partnerModePostDTO);
                 BudgetCreatedDTO partnerBudgetCreatedDTO = mapper.Map<BudgetCreatedDTO>(partnerBudget);
@@ -186,9 +190,15 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                List<User> otherUsers = await userManager.FindMultipleByIdsWithIncludesAsync(userIdsList);
+                List<User> otherUsers = await userManager.FindMultipleByIdsWithIncludesAsync(userIdsList,
+                    (u => u.Budgets, null, null));
                 if (userIdsList.Count != otherUsers.Count)
                     return NotFound("Some of users were not found.");
+
+                Budget? userFamilyBudget = user.Budgets.FirstOrDefault(b => b.BudgetType.Equals(BudgetTypeEnum.Family));
+                if (userFamilyBudget is not null && 
+                    otherUsers.Any(ou => ou.Budgets.Any(b => b.Id.Equals(userFamilyBudget.Id))))
+                    return StatusCode(403, "You cannot create partner mode with your family member.");
 
                 Budget temporaryBudget = await ModeManager.CreateTemporaryMode(repositoryWrapper, user, otherUsers,
                     temporaryModePostDTO);
