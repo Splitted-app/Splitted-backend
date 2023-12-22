@@ -1,4 +1,5 @@
 ﻿using Models.Enums;
+using Models.Interfaces;
 using Splitted_backend.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Models.Entities
 {
     [Table("TransactionPayBacks")]
-    public class TransactionPayBack
+    public class TransactionPayBack : IEntity
     {
         public Guid Id { get; set; }
 

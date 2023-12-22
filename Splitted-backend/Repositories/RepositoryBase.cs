@@ -29,6 +29,8 @@ namespace Splitted_backend.Repositories
 
         public async Task<List<T>> GetAllAsync() => await splittedDbContext.Set<T>().ToListAsync();
 
+        public List<T> GetAll() => splittedDbContext.Set<T>().ToList();
+
         public T? GetEntityOrDefaultByCondition(Expression<Func<T, bool>> expression, params (Expression<Func<T, object>> include,
             Expression<Func<object, object>>? thenInclude, Expression<Func<object, object>>? thenThenInclude)[] includes)
             => splittedDbContext.Set<T>().IncludeMultiple(includes).FirstOrDefault(expression);

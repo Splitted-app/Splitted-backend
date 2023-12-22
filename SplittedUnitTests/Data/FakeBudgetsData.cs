@@ -9,7 +9,7 @@ namespace SplittedUnitTests.Data
 {
     public static class FakeBudgetsData
     {
-        public static IQueryable<Budget> Budgets = new List<Budget>
+        public static List<Budget> Budgets = new List<Budget>
         {
             new Budget
             {
@@ -61,7 +61,6 @@ namespace SplittedUnitTests.Data
                 BudgetBalance = 13456.34M,
                 CreationDate = DateTime.Parse("2023-08-12")
             }
-        }
-        .AsQueryable();
+        };
     }
 }

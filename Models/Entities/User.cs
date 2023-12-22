@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Models.Entities;
 using Models.Enums;
+using Models.Interfaces;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Splitted_backend.Models.Entities
 {
     [Table("Users")]
-    public class User : IdentityUser<Guid>
+    public class User : IdentityUser<Guid>, IEntity
     {
         public string? AvatarImage { get; set; }
 
