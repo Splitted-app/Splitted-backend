@@ -11,15 +11,14 @@ using System.Threading.Tasks;
 
 namespace SplittedUnitTests.RepositoriesTests.Fixtures
 {
-    public class BudgetRepositoryGetFixture
+    public class RepositoryGetTestFixture
     {
         public IRepositoryWrapper repositoryWrapper { get; private set; }
 
 
-        public BudgetRepositoryGetFixture()
+        public RepositoryGetTestFixture()
         {
             repositoryWrapper = new RepositoryWrapper(SplittedDbContextMock.GetMockedDbContext());
         }
-
     }
 }

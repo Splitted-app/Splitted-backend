@@ -46,5 +46,27 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
             budgetFound.Should().NotBeNull();
             budgetFound.Should().BeEquivalentTo(budget);
         }
+
+        [Fact]
+        public void Test_UpdateNonExistingBudget()
+        {
+            string name = "ChangedPartnerBudget";
+            decimal budgetBalance = 15000;
+
+            Budget budget = new Budget
+            {
+                Id = new Guid("319d2454-86ff-4c3a-a248-e85ac8b22ee0"),
+                BudgetType = Models.Enums.BudgetTypeEnum.Partner,
+                Name = name,
+                Currency = "PLN",
+                BudgetBalance = budgetBalance,
+                CreationDate = DateTime.Parse("2023-12-05"),
+            };
+
+            repositoryWrapper.Budgets.Update(budget);
+            Budget? budgetFound = repositoryWrapper.Budgets.GetEntityOrDefaultByCondition(b => b.Id.Equals(budget.Id));
+
+            budgetFound.Should().BeNull();
+        }
     }
 }

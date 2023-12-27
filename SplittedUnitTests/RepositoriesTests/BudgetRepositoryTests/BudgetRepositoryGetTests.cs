@@ -14,14 +14,14 @@ using Xunit.Abstractions;
 
 namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
 {
-    public class BudgetRepositoryGetTests : IClassFixture<BudgetRepositoryGetFixture>
+    public class BudgetRepositoryGetTests : IClassFixture<RepositoryGetTestFixture>
     {
-        private BudgetRepositoryGetFixture budgetRepositoryGetFixture { get; }
+        private RepositoryGetTestFixture repositoryGetTestFixture { get; }
 
 
-        public BudgetRepositoryGetTests(BudgetRepositoryGetFixture budgetRepositoryGetFixture)
+        public BudgetRepositoryGetTests(RepositoryGetTestFixture repositoryGetTestFixture)
         {
-            this.budgetRepositoryGetFixture = budgetRepositoryGetFixture;
+            this.repositoryGetTestFixture = repositoryGetTestFixture;
         }
 
 
@@ -30,7 +30,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
         {
             Guid id = new Guid("a618304c-ad79-452a-ba6a-f54828f8a249");
 
-            Budget? budget = budgetRepositoryGetFixture.repositoryWrapper.Budgets
+            Budget? budget = repositoryGetTestFixture.repositoryWrapper.Budgets
                 .GetEntityOrDefaultByCondition(b => b.Id.Equals(id));
 
             budget.Should().NotBeNull();
@@ -51,7 +51,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
         {
             Guid id = new Guid("bda3eec3-fc62-4bc5-aaea-1dd8cf4c1bc4");
 
-            Budget? budget = budgetRepositoryGetFixture.repositoryWrapper.Budgets
+            Budget? budget = repositoryGetTestFixture.repositoryWrapper.Budgets
                 .GetEntityOrDefaultByCondition(b => b.Id.Equals(id));
 
             budget.Should().BeNull();
@@ -62,7 +62,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
         {
             Guid id = new Guid("5451431a-f252-43a4-bbf2-71508d95d563");
 
-            Budget? budget = await budgetRepositoryGetFixture.repositoryWrapper.Budgets
+            Budget? budget = await repositoryGetTestFixture.repositoryWrapper.Budgets
                 .GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(id));
 
             budget.Should().NotBeNull();
@@ -82,7 +82,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
         {
             Guid id = new Guid("652d0b48-e93f-4138-94ac-d9add3d6a2c5");
 
-            Budget? budget = await budgetRepositoryGetFixture.repositoryWrapper.Budgets
+            Budget? budget = await repositoryGetTestFixture.repositoryWrapper.Budgets
                 .GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(id));
 
             budget.Should().BeNull();
@@ -91,7 +91,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
         [Fact]
         public async Task Test_GetAllBudgetsAsync()
         {
-            List<Budget> budgets = await budgetRepositoryGetFixture.repositoryWrapper.Budgets.GetAllAsync();
+            List<Budget> budgets = await repositoryGetTestFixture.repositoryWrapper.Budgets.GetAllAsync();
 
             budgets.Should().NotBeNull();
             budgets.Should().HaveCount(5);
@@ -123,7 +123,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
                 },
             };
 
-            List<Budget> budgets = await budgetRepositoryGetFixture.repositoryWrapper.Budgets
+            List<Budget> budgets = await repositoryGetTestFixture.repositoryWrapper.Budgets
                 .GetEntitiesByConditionAsync(b => b.BudgetType.Equals(budgetType));
             
             budgets.Should().NotBeNull();
@@ -136,7 +136,7 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
         {
             BudgetTypeEnum budgetType = BudgetTypeEnum.Temporary;
             
-            List<Budget> budgets = await budgetRepositoryGetFixture.repositoryWrapper.Budgets
+            List<Budget> budgets = await repositoryGetTestFixture.repositoryWrapper.Budgets
                 .GetEntitiesByConditionAsync(b => b.BudgetType.Equals(budgetType));
 
             budgets.Should().NotBeNull();

@@ -5,6 +5,7 @@ using Models.Interfaces;
 using Moq;
 using Splitted_backend.DbContexts;
 using SplittedUnitTests.Data;
+using SplittedUnitTests.Data.FakeRepositoriesData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +19,12 @@ namespace SplittedUnitTests.RepositoriesTests.Mocks
         public static SplittedDbContext GetMockedDbContext()
         {
             Mock<DbSet<Budget>> budgetSetMock = MockDbSet(FakeBudgetsData.Budgets.ConvertAll(b => (Budget)b.Clone()));
+            Mock<DbSet<Transaction>> transactionSetMock = MockDbSet(FakeTransactionsData.Transactions
+                .ConvertAll(t => (Transaction)t.Clone()));
 
             Mock<SplittedDbContext> splittedDbContextMock = new Mock<SplittedDbContext>();
             MockSetOnDbContext(splittedDbContextMock, budgetSetMock);
+            MockSetOnDbContext(splittedDbContextMock, transactionSetMock);
 
             return splittedDbContextMock.Object;
         }
