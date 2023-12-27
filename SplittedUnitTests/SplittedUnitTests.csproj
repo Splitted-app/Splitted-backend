@@ -24,10 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="RepositoriesTests\GoalRepositoryTests\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Models\Models.csproj" />
     <ProjectReference Include="..\Splitted-backend\Splitted-backend.csproj" />
   </ItemGroup>

@@ -21,10 +21,13 @@ namespace SplittedUnitTests.RepositoriesTests.Mocks
             Mock<DbSet<Budget>> budgetSetMock = MockDbSet(FakeBudgetsData.Budgets.ConvertAll(b => (Budget)b.Clone()));
             Mock<DbSet<Transaction>> transactionSetMock = MockDbSet(FakeTransactionsData.Transactions
                 .ConvertAll(t => (Transaction)t.Clone()));
+            Mock<DbSet<Goal>> goalSetMock = MockDbSet(FakeGoalsData.Goals.ConvertAll(g => (Goal)g.Clone()));
+
 
             Mock<SplittedDbContext> splittedDbContextMock = new Mock<SplittedDbContext>();
             MockSetOnDbContext(splittedDbContextMock, budgetSetMock);
             MockSetOnDbContext(splittedDbContextMock, transactionSetMock);
+            MockSetOnDbContext(splittedDbContextMock, goalSetMock);
 
             return splittedDbContextMock.Object;
         }

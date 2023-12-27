@@ -40,7 +40,7 @@ namespace Splitted_backend.Managers
             goalGetDTOs.ForEach(g => g.Percentage = GoalTypeToPercentagesMapping[g.GoalType](g, budget));
         }
 
-        public static double CountPercentageInBudgetBalance(GoalGetDTO goalGetDTO, Budget budget)
+        private static double CountPercentageInBudgetBalance(GoalGetDTO goalGetDTO, Budget budget)
         {
             double percentage = decimal.ToDouble(budget.BudgetBalance / goalGetDTO.Amount * 100);
             percentage = percentage < 0 ? 0 : percentage;
@@ -49,7 +49,7 @@ namespace Splitted_backend.Managers
             return Math.Round(percentage, 2);
         }
 
-        public static double CountPercentageInAverageExpenses(GoalGetDTO goalGetDTO, Budget budget)
+        private static double CountPercentageInAverageExpenses(GoalGetDTO goalGetDTO, Budget budget)
         {
             TransactionsFilter transactionsFilter = new TransactionsFilter(
                 dates: (goalGetDTO.CreationDate, DateTime.Today),
@@ -71,7 +71,7 @@ namespace Splitted_backend.Managers
             return Math.Round(percentage, 2);
         }
 
-        public static double CountPercentageInMaxExpenses(GoalGetDTO goalGetDTO, Budget budget)
+        private static double CountPercentageInMaxExpenses(GoalGetDTO goalGetDTO, Budget budget)
         {
             TransactionsFilter transactionsFilter = new TransactionsFilter(
                 dates: (goalGetDTO.CreationDate, DateTime.Today),

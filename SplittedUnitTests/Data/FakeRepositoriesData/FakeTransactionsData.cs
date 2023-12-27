@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SplittedUnitTests.Data.FakeRepositoriesData
 {
-    public class FakeTransactionsData
+    public static class FakeTransactionsData
     {
         public static List<Transaction> Transactions = new List<Transaction>
         {
