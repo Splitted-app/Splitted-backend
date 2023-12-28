@@ -12,7 +12,8 @@ namespace Splitted_backend.MapperProfiles
     {
         public TransactionProfile()
         {
-            CreateMap<TransactionCsv, Transaction>();
+            CreateMap<TransactionCsv, Transaction>()
+                .ForMember(dest => dest.ToCancel, opt => opt.MapFrom(src => true));
 
             CreateMap<TransactionPostDTO, Transaction>();
 

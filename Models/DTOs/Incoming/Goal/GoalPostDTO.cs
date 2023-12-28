@@ -20,7 +20,5 @@ namespace Models.DTOs.Incoming.Goal
 
         [Required]
         public DateTime? Deadline { get; set; }
-
-        public bool IsMain { get; set; }
     }
 }

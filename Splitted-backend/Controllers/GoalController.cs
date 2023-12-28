@@ -65,8 +65,8 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                if (goalPostDTO.IsMain && user.Goals.Any(g => g.IsMain))
-                    return BadRequest("You cannot have multiple main goals.");
+                if (((DateTime)goalPostDTO.Deadline - DateTime.Today).Days <= 0)
+                    return BadRequest("Deadline has to be greater than today's date.");
 
                 Goal goal = mapper.Map<Goal>(goalPostDTO);
                 GoalManager.SetGoalName(goalPostDTO, goal);
@@ -116,6 +116,12 @@ namespace Splitted_backend.Controllers
 
                 if (!user.Goals.Any(g => g.Id.Equals(goal.Id)))
                     return StatusCode(403, $"Goal with id: {goal.Id} doesn't belong to user.");
+
+                if (goalPutDTO.Deadline is not null && ((DateTime)goalPutDTO.Deadline - DateTime.Today).Days <= 0)
+                    return BadRequest("Deadline has to be greater than today's date.");
+
+                if (goalPutDTO.IsMain ?? false)
+                    user.Goals.ForEach(g => g.IsMain = false);
 
                 mapper.Map(goalPutDTO, goal);
                 repositoryWrapper.Goals.Update(goal);

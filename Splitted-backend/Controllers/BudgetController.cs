@@ -20,6 +20,7 @@ using Splitted_backend.Interfaces;
 using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
 using System.Security.Claims;
 
 namespace Splitted_backend.Controllers
@@ -278,6 +279,7 @@ namespace Splitted_backend.Controllers
                 List<TransactionAITrainDTO> importedAiTransactions = mapper.Map<List<TransactionAITrainDTO>>(importedTransactions);
                 pythonExecuter.CategorizeTransactions(importedTransactions, importedAiTransactions, userId.ToString());
 
+                budget.Transactions.ForEach(t => t.ToCancel = false);
                 List<Transaction> entityTransactions = mapper.Map<List<Transaction>>(importedTransactions);
 
                 repositoryWrapper.Transactions.FindDuplicates(entityTransactions, budget.Transactions);
@@ -298,6 +300,80 @@ namespace Splitted_backend.Controllers
             catch (Exception exception)
             {
                 logger.LogError($"Error occurred inside PostCsvTransactionsToBudget method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpDelete("{budgetId}/transactions/csv/cancel")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Transactions cancelled")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> CancelCsvTransactions([FromRoute, BindRequired] Guid budgetId)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with id {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null), (b => b.Transactions, null, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                repositoryWrapper.Transactions.DeleteMultiple(budget.Transactions.Where(t => t.ToCancel is true));
+                await repositoryWrapper.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside PostTransactionToBudget method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpPut("{budgetId}/transactions/csv/accept")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Transactions accepted")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> AcceptCsvTransactions([FromRoute, BindRequired] Guid budgetId)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdAsync(userId.ToString());
+                if (user is null)
+                    return NotFound($"User with id {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets.GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId),
+                    (b => b.UserBudgets, null, null), (b => b.Transactions, null, null));
+                if (budget is null)
+                    return NotFound($"Budget with id {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.UserBudgets.Any(ub => ub.UserId.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                budget.Transactions.ForEach(t => t.ToCancel = false);
+                await repositoryWrapper.SaveChanges();
+
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside PostTransactionToBudget method. {exception}.");
                 return StatusCode(500, "Internal server error.");
             }
         }

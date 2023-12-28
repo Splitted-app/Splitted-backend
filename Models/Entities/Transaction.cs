@@ -32,6 +32,8 @@ namespace Models.Entities
 
         public string? UserCategory { get; set; }
 
+        public bool ToCancel { get; set; }
+
 
         public Guid BudgetId { get; set; }
 

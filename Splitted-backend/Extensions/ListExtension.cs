@@ -6,6 +6,7 @@
         {
 
             if (p >= 100M) return sortedDecimals[sortedDecimals.Count - 1];
+            if (sortedDecimals.Count() == 1) return sortedDecimals[0];
 
             decimal leftNumber, rightNumber = 0M;
             decimal position = (sortedDecimals.Count + 1) * p / 100M;

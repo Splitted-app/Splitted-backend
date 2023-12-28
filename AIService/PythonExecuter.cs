@@ -77,14 +77,13 @@ namespace AIService
 
         private void MapUserCategory(List<TransactionCsv> importedTransactions, string?[]? autoCategories)
         {
-            importedTransactions = importedTransactions
-                 .Select((it, i) =>
-                 {
-                     it.AutoCategory = autoCategories is null ? null : autoCategories[i];
-                     it.UserCategory = it.AutoCategory is null ? it.BankCategory : it.AutoCategory;
-                     return it;
-                 })
-                 .ToList();
+            int i = 0;
+            foreach (TransactionCsv importedTransaction in importedTransactions)
+            {
+                importedTransaction.AutoCategory = autoCategories is null ? null : autoCategories[i++];
+                importedTransaction.UserCategory = importedTransaction.AutoCategory is null ? 
+                    importedTransaction.BankCategory : importedTransaction.AutoCategory;
+            }
         }
 
         private dynamic LoadMainModule()

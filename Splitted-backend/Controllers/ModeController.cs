@@ -101,7 +101,8 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Partner mode created", typeof(BudgetCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid partner")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
-        [SwaggerResponse(StatusCodes.Status403Forbidden, "User or partner already in partner mode")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User or partner already in partner mode or partner mode" +
+            "with family member")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User or partner not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddPartnerMode([FromRoute, BindRequired] Guid partnerId,
@@ -157,7 +158,9 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status201Created, "Temporary mode created", typeof(BudgetCreatedDTO))]
         [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid body or invalid user")]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "Temporary mode with family member")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
+        [SwaggerResponse(StatusCodes.Status409Conflict, "Budget name already taken")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
         public async Task<IActionResult> AddTemporaryMode([FromRoute, BindRequired] string userIds,
             [FromBody] TemporaryModePostDTO temporaryModePostDTO)
@@ -199,6 +202,11 @@ namespace Splitted_backend.Controllers
                 if (userFamilyBudget is not null && 
                     otherUsers.Any(ou => ou.Budgets.Any(b => b.Id.Equals(userFamilyBudget.Id))))
                     return StatusCode(403, "You cannot create partner mode with your family member.");
+
+                if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Temporary) && b.Name.Equals(temporaryModePostDTO.Name))
+                    && otherUsers.Any(ou => ou.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Temporary)
+                    && b.Name.Equals(temporaryModePostDTO.Name))))
+                    return Conflict($"Temporary budget with name {temporaryModePostDTO.Name} already exists at one of the users.");
 
                 Budget temporaryBudget = await ModeManager.CreateTemporaryMode(repositoryWrapper, user, otherUsers,
                     temporaryModePostDTO);
