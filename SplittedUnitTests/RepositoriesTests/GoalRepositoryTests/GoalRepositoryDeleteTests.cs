@@ -20,7 +20,8 @@ namespace SplittedUnitTests.RepositoriesTests.GoalRepositoryTests
 
         public GoalRepositoryDeleteTests()
         {
-            repositoryWrapper = new RepositoryWrapper(SplittedDbContextMock.GetMockedDbContext());
+            repositoryWrapper = new RepositoryWrapper(SplittedDbContextMock.GetMockedDbContext(FakeBudgetsData.Budgets,
+                FakeTransactionsData.Transactions, FakeGoalsData.Goals));
         }
 
 

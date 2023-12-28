@@ -3,6 +3,7 @@ using Models.Entities;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Repositories;
 using SplittedUnitTests.Data;
+using SplittedUnitTests.Data.FakeRepositoriesData;
 using SplittedUnitTests.RepositoriesTests.Mocks;
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,8 @@ namespace SplittedUnitTests.RepositoriesTests.BudgetRepositoryTests
 
         public BudgetRepositoryUpdateTests()
         {
-            repositoryWrapper = new RepositoryWrapper(SplittedDbContextMock.GetMockedDbContext());
+            repositoryWrapper = new RepositoryWrapper(SplittedDbContextMock.GetMockedDbContext(FakeBudgetsData.Budgets,
+                FakeTransactionsData.Transactions, FakeGoalsData.Goals));
         }
 
 

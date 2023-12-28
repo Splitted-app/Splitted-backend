@@ -16,12 +16,13 @@ namespace SplittedUnitTests.RepositoriesTests.Mocks
 {
     public static class SplittedDbContextMock
     {
-        public static SplittedDbContext GetMockedDbContext()
+        public static SplittedDbContext GetMockedDbContext(List<Budget> budgets, List<Transaction> transactions, 
+            List<Goal> goals)
         {
-            Mock<DbSet<Budget>> budgetSetMock = MockDbSet(FakeBudgetsData.Budgets.ConvertAll(b => (Budget)b.Clone()));
-            Mock<DbSet<Transaction>> transactionSetMock = MockDbSet(FakeTransactionsData.Transactions
+            Mock<DbSet<Budget>> budgetSetMock = MockDbSet(budgets.ConvertAll(b => (Budget)b.Clone()));
+            Mock<DbSet<Transaction>> transactionSetMock = MockDbSet(transactions
                 .ConvertAll(t => (Transaction)t.Clone()));
-            Mock<DbSet<Goal>> goalSetMock = MockDbSet(FakeGoalsData.Goals.ConvertAll(g => (Goal)g.Clone()));
+            Mock<DbSet<Goal>> goalSetMock = MockDbSet(goals.ConvertAll(g => (Goal)g.Clone()));
 
 
             Mock<SplittedDbContext> splittedDbContextMock = new Mock<SplittedDbContext>();
