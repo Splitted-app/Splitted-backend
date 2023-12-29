@@ -28,7 +28,13 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
                 BudgetBalance = 1200,
-                CreationDate = DateTime.Parse("2023-12-13")
+                CreationDate = DateTime.Parse("2023-12-13"),
+                Transactions = new List<Transaction>
+                {
+                    FakeTransactionsData.Transactions[3],
+                    FakeTransactionsData.Transactions[4],
+                    FakeTransactionsData.Transactions[5],
+                }
             },
 
             new Budget
@@ -38,7 +44,11 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
                 BudgetBalance = 10000,
-                CreationDate = DateTime.Parse("2023-12-12")
+                CreationDate = DateTime.Parse("2023-12-12"),
+                Transactions = new List<Transaction>
+                {
+                    FakeTransactionsData.Transactions[6],
+                }
             },
 
             new Budget
@@ -48,7 +58,13 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
                 BudgetBalance = 100,
-                CreationDate = DateTime.Parse("2023-12-14")
+                CreationDate = DateTime.Parse("2023-12-14"),
+                Transactions = new List<Transaction>
+                {
+                    FakeTransactionsData.Transactions[7],
+                    FakeTransactionsData.Transactions[8],
+                    FakeTransactionsData.Transactions[9],
+                }
             },
 
             new Budget
@@ -58,7 +74,11 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
                 BudgetBalance = 12000,
-                CreationDate = DateTime.Parse("2023-12-16")
+                CreationDate = DateTime.Parse("2023-12-16"),
+                Transactions = new List<Transaction>
+                {
+                    FakeTransactionsData.Transactions[10],
+                }
             },
 
             new Budget
@@ -108,6 +128,24 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
                 BudgetBalance = 1000,
+                CreationDate = DateTime.Parse("2023-12-21")
+            },
+
+            new Budget
+            {
+                Id = new Guid("406527d1-b80c-48ca-bf09-bf5f5fdf9e81"),
+                BudgetType = Models.Enums.BudgetTypeEnum.Temporary,
+                Name = "Temporary budget",
+                Currency = string.Empty,
+                CreationDate = DateTime.Parse("2023-12-21")
+            },
+
+            new Budget
+            {
+                Id = new Guid("00d0bfea-8cf1-44ed-812b-72fdfd4fe57f"),
+                BudgetType = Models.Enums.BudgetTypeEnum.Partner,
+                Name = "Partner budget",
+                Currency = string.Empty,
                 CreationDate = DateTime.Parse("2023-12-21")
             },
         };

@@ -50,7 +50,7 @@ namespace Models.Entities
                 CreationDate = CreationDate,
                 Users = Users,
                 UserBudgets = UserBudgets,
-                Transactions = Transactions,
+                Transactions = Transactions.ConvertAll(t => (Transaction)t.Clone()),
             };
         }
     }
