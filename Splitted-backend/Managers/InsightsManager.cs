@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using Models.DTOs.Outgoing.Insights;
 using Models.Entities;
 using Models.Enums;
+using Splitted_backend.EntitiesFilters;
 using Splitted_backend.Extensions;
 using Splitted_backend.Utils;
 using System.Runtime.InteropServices;
@@ -160,19 +161,10 @@ namespace Splitted_backend.Managers
 
             foreach (string category in categories)
             {
-                List<Transaction> transactionFiltered = transactions.Where(t =>
-                {
-                    if (category.Equals("uncategorized"))
-                    {
-                        if (string.IsNullOrWhiteSpace(t.UserCategory)) return true;
-                        else return false;
-                    }
-                    else
-                    {
-                        return category.Equals(t.UserCategory is null ? null : t.UserCategory.ToLower().Beutify());
-                    }
-                })
-                .ToList();
+                TransactionsFilter transactionsFilter = new TransactionsFilter(
+                    (null, null), (null, null), category);
+
+                List<Transaction> transactionFiltered = transactionsFilter.GetFilteredTransactions(transactions); 
 
                 categoryExpensesDTOs.Add(new InsightsCategoryExpensesDTO
                 {
