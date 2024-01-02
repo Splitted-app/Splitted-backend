@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SplittedUnitTests.ManagersTests
+namespace SplittedUnitTests.ManagersTests.SearchManagerTests
 {
     public class SearchManagerTests
     {

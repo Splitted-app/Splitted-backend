@@ -53,6 +53,7 @@ namespace SplittedUnitTests.Data.FakeRepositoriesData
             {
                 Id = new Guid("42f2c0c1-2967-42dd-b059-21afaab04077"),
                 Amount = 30,
+                Category = "shopping",
                 Name = "Average expenses in shopping",
                 GoalType = Models.Enums.GoalTypeEnum.AverageExpenses,
                 CreationDate = DateTime.Parse("2023-12-05"),
@@ -65,6 +66,7 @@ namespace SplittedUnitTests.Data.FakeRepositoriesData
             {
                 Id = new Guid("921bd613-edb5-429a-8d38-87285c53a714"),
                 Amount = 3000,
+                Category = "shopping",
                 Name = "Expenses limit in shopping",
                 GoalType = Models.Enums.GoalTypeEnum.ExpensesLimit,
                 CreationDate = DateTime.Parse("2023-12-01"),

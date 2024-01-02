@@ -88,7 +88,17 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
                 BudgetBalance = 1000,
-                CreationDate = DateTime.Parse("2023-12-17")
+                CreationDate = DateTime.Parse("2023-12-17"),
+                Transactions = new List<Transaction>
+                {
+                    FakeTransactionsData.Transactions[0],
+                    FakeTransactionsData.Transactions[1],
+                    FakeTransactionsData.Transactions[2],
+                    FakeTransactionsData.Transactions[3],
+                    FakeTransactionsData.Transactions[4],
+                    FakeTransactionsData.Transactions[5],
+                    FakeTransactionsData.Transactions[6],
+                }
             },
 
             new Budget
@@ -107,7 +117,7 @@ namespace SplittedUnitTests.Data.FakeManagersData
                 Bank = Models.Enums.BankNameEnum.Santander,
                 BudgetType = Models.Enums.BudgetTypeEnum.Personal,
                 Currency = "PLN",
-                BudgetBalance = 1000,
+                BudgetBalance = -1000,
                 CreationDate = DateTime.Parse("2023-12-17")
             },
 
