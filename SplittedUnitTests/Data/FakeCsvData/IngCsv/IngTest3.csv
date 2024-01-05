@@ -1,0 +1,36 @@
+﻿﻿﻿"Lista transakcji";;;;;"ING Bank Śląski";;;;;;;;;;;;;;;
+"Dokument nr fakeNumber";
+"Wygenerowany dnia: fakeDate, fakeHour";;;;;;;;;;;;;;;;;;;;
+
+"Dane Użytkownika:";
+"fakeUser";
+
+"Wybrane rachunki:";
+"fakeRachunek";
+"fakeNumber";
+
+"Zastosowane kryteria wyboru";;;;;"Podsumowanie";;
+
+"Zakres dat:";"fakeDates";"Typy transakcji:";"wszystkie";;"Liczba transakcji:";fakeNumber;
+
+;;;;;"fakeInfo";fakeAmount;fakeCurrency;;;;;;;;;;;;;
+
+"fakeAmount";;;;;"fakeInfo";fakeAmount;fakeCurrency;;;;;;;;;;;;;
+
+"Data transakcji";"Data księgowania";"Dane kontrahenta";"Tytuł";"Nr rachunku";"Nazwa banku";"Szczegóły";"Nr transakcji";"Kwota transakcji (waluta rachunku)";"Waluta";"Kwota blokady/zwolnienie blokady";"Waluta";"Kwota płatności w walucie";"Waluta";"Konto";;;;;;
+2023-12-21;2023-12-21;"Mateusz Tobiasz";"Nowy przelew 1";'fakeNumber ';"fakeBank";" ";'fakeNumber';254,5;PLN;;;;;"fakeAccount";;;;;;
+2023-12-22;2023-12-22;"Mateusz Tobiasz";"Nowy przelew 2";'fakeNumber ';"fakeBank";" ";'fakeNumber';1000;PLN;;;;;"fakeAccount";;;;;;
+2023-12-22;2023-12-22;"Stokrotka";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-34,99;PLN;;;;;"fakeAccount";;;;;;
+2023-12-24;2023-12-24;"Biedronka";"Płatność kartą";'";'fakeNumber ';"fakeBank";" ";'fakeNumber';-55;PLN;;;;;"fakeAccount";;;;;;
+2023-12-25;2023-12-25;"Allegro";"Płatność blik";'fakeNumber ';"fakeBank";" ";'fakeNumber';-123;PLN;;;;;"fakeAccount";;;;;;
+2023-12-26;2023-12-26;"Mateusz Tobiasz";"Strange title";'fakeNumber ';"fakeBank";" ";'fakeNumber';456;PLN;;;;;"fakeAccount";;;;;;
+2023-12-26;2023-12-26;"Biedronka";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-13,45;PLN;;;;;"fakeAccount";;;;;;
+2023-12-27;2023-12-27;"Kaufland";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-23;PLN;;;;;"fakeAccount";;;;;;
+2023-12-28;2023-12-28;"Lidl";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-56,76;PLN;;;;;"fakeAccount";;;;;;
+2023-12-31;2023-12-31;"Mateusz Tobiasz";"Przelew na telefon";'fakeNumber ';"fakeBank";" ";'fakeNumber';100;PLN;;;;;"fakeAccount";;;;;;
+2024-01-01;2024-01-01;"Biedronka";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-76,78;PLN;;;;;"fakeAccount";;;;;;
+2024-01-02;2024-01-02;"Biedronka";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-6,89;PLN;;;;;"fakeAccount";;;;;;
+2024-01-08;2024-01-08;"Bankomat";"Wypłata z bankomatu";'fakeNumber ';"fakeBank";" ";'fakeNumber';-200;PLN;;;;;"fakeAccount";;;;;;
+
+
+"Dokument ma charakter informacyjny, nie stanowi dowodu księgowego";

@@ -1,0 +1,7 @@
+Data księgowania;Data waluty;Nadawca / Odbiorca;Adres nadawcy / odbiorcy;Rachunek źródłowy;Rachunek docelowy;Tytułem;Kwota operacji;Waluta;Numer referencyjny;Typ operacji;Kategoria
+21.12.2023;21.12.2023;fakeNumber;;fakeNumber;-73,29;PLN;fakeNumber;TRANSAKCJA KARTĄ PŁATNICZĄ;Restauracje i kawiarnie
+23.12.2023;23.12.2023;Mateusz TObiasz;;fakeNumber;fakeNumber;Przelew na telefonOd: fakeNumber Do: fakeNumber;56,32;PLN;fakeNumber;PRZELEW BLIK PRZYCHODZĄCY;Sprzedaż
+02.01.2024;02.01.2024;Wypłata;;fakeNumber;;fakeNumber;-300;PLN;fakeNumber;WYPŁATA GOTÓWKI;Żywność
+02.01.2024;02.01.2024;ZABKA;;fakeNumber;;fakeNumber;-13,43;PLN;fakeNumber;TRANSAKCJA KARTĄ PŁATNICZĄ;Żywność
+03.01.2024;03.01.2024;Przelew;;fakeNumber;;fakeNumber;289,13;PLN;fakeNumber;PRZELEW;Bez kategorii
+04.01.2024;04.01.2024;MateuszakeNumber;fakeNumber;Przelew na telefonOd: fakeNumber Do: fakeNumber;100;PLN;fakeNumber;PRZELEW BLIK PRZYCHODZĄCY;Bez kategorii

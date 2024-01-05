@@ -22,7 +22,7 @@ namespace CsvConversion.Readers
         }
 
 
-        private string SaveCsvFile()
+        protected virtual string SaveCsvFile()
         {
             string fileName = Guid.NewGuid().ToString() + "_" + csvFile.FileName;
 
@@ -34,6 +34,8 @@ namespace CsvConversion.Readers
             ConvertToUtf8(fileName);
             return fileName;
         }
+
+        protected virtual void DeleteCsvFile(string fileName) => File.Delete(fileName);
 
         private void ConvertToUtf8(string fileName)
         {
@@ -75,7 +77,9 @@ namespace CsvConversion.Readers
                 if (!TrySkipToHeaderRecord(csvReader))
                 {
                     csvReader.Dispose();
-                    File.Delete(fileName);
+                    DeleteCsvFile(fileName);
+                    transactions = null;
+
                     return transactions;
                 }
                     
@@ -94,7 +98,7 @@ namespace CsvConversion.Readers
                 }
             }
 
-            File.Delete(fileName);
+            DeleteCsvFile(fileName);
             return transactions;
         }
 

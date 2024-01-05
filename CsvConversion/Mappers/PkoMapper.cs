@@ -36,7 +36,7 @@ namespace CsvConversion.Mappers
             int countryIndex = Enumerable.Range(0, paymentDescriptionSplitted.Count())
                 .FirstOrDefault(i => paymentDescriptionSplitted[i].Contains("Kraj"), -1);
 
-                int[] finalDescriptionIndexes = new int[] { addressIndex + 1, cityIndex + 1, countryIndex + 1 };
+            int[] finalDescriptionIndexes = new int[] { addressIndex + 1, cityIndex + 1, countryIndex + 1 };
             IEnumerable<string> finalDescriptionSplitted = finalDescriptionIndexes
                 .Select(i => i != 0 ? paymentDescriptionSplitted[i] : "");
 
