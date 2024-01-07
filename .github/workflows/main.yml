@@ -1,15 +1,40 @@
-name: Azure Container Apps Deploy
+name: Splitted-backend pipeline
 
 on:
   push:
     branches:
       - dev
+      - main
+
 permissions:
   id-token: write
   contents: read
 
 jobs:
   build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code check out
+        uses: actions/checkout@v3
+        
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '6.0.402'
+          
+      - name: Install dependencies
+        run: dotnet restore
+        
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Unit tests
+        run: dotnet test --no-restore --verbosity normal
+        
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Code check out
