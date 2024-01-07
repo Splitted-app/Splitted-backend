@@ -21,6 +21,7 @@ namespace SplittedUnitTests.Mocks
                 .Setup<string>("SaveCsvFile")
                 .Returns(filePath)
                 .Verifiable();
+
             csvReaderMock.Protected()
                 .Setup("DeleteCsvFile", ItExpr.IsAny<string>())
                 .Verifiable();

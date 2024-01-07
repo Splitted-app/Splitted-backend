@@ -35,6 +35,7 @@ namespace ExternalServices.EmailSender
                     Address = email
                 }
             };
+
             string subject = "Confirmation email";
             string htmlTemplate = Path.Combine(templatesCatalogPath, "ConfirmationEmailTemplate.html");
             List<(string placeHolder, string actualValue)> values = new List<(string placeHolder, string actualValue)> 
@@ -43,7 +44,7 @@ namespace ExternalServices.EmailSender
             await SendEmail(new EmailMessage(emailAddresses, subject, htmlTemplate, values));
         }
 
-        private async Task SendEmail(EmailMessage emailMessage)
+        protected virtual async Task SendEmail(EmailMessage emailMessage)
         {
             MimeMessage message = CreateMimeMessage(emailMessage);
             await SendAsync(message);
@@ -97,6 +98,7 @@ namespace ExternalServices.EmailSender
             {
                 bodyBuilder.HtmlBody = bodyBuilder.HtmlBody.Replace(v.placeHolder, v.actualValue);
             });
+
             return bodyBuilder.ToMessageBody();
         }
     }

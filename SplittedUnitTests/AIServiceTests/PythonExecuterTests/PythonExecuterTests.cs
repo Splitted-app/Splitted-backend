@@ -130,8 +130,13 @@ namespace SplittedUnitTests.AIServiceTests.PythonExecuterTests
                 })
                 .ToList();
 
-            pythonExecuterTestFixture.pythonExecuter.CategorizeTransactions(importedTransactions, importedAiTransactions,
-                userId.ToString());
+            Action action = () =>
+            {
+                pythonExecuterTestFixture.pythonExecuter
+                .CategorizeTransactions(importedTransactions, importedAiTransactions, userId.ToString());
+            };
+
+            action.Should().NotThrow();
 
             string?[] userCategories = importedTransactions.Select(it => it.UserCategory)
                 .ToArray();
