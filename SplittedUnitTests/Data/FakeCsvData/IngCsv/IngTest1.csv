@@ -1,0 +1,26 @@
+﻿﻿﻿"Lista transakcji";;;;;"ING Bank Śląski";;;;;;;;;;;;;;;
+"Dokument nr fakeNumber";
+"Wygenerowany dnia: fakeDate, fakeHour";;;;;;;;;;;;;;;;;;;;
+
+"Dane Użytkownika:";
+"fakeUser";
+
+"Wybrane rachunki:";
+"fakeRachunek";
+"fakeNumber";
+
+"Zastosowane kryteria wyboru";;;;;"Podsumowanie";;
+
+"Zakres dat:";"fakeDates";"Typy transakcji:";"wszystkie";;"Liczba transakcji:";fakeNumber;
+
+;;;;;"fakeInfo";fakeAmount;fakeCurrency;;;;;;;;;;;;;
+
+"fakeAmount";;;;;"fakeInfo";fakeAmount;fakeCurrency;;;;;;;;;;;;;
+
+"Data transakcji";"Data księgowania";"Dane kontrahenta";"Tytuł";"Nr rachunku";"Nazwa banku";"Szczegóły";"Nr transakcji";"Kwota transakcji (waluta rachunku)";"Waluta";"Kwota blokady/zwolnienie blokady";"Waluta";"Kwota płatności w walucie";"Waluta";"Konto";;;;;;
+2023-12-21;2023-12-21;"Mateusz Tobiasz";"Nowy przelew 1";'fakeNumber ';"fakeBank";" ";'fakeNumber';254,5;PLN;;;;;"fakeAccount";;;;;;
+2023-12-22;2023-12-22;"Allegro";"Płatność BLIK";'fakeNumber ';"fakeBank";" ";'fakeNumber';-156,69;PLN;;;;;"fakeAccount";;;;;;
+2024-01-01;2024-01-01;"Stokrotka";"Płatność kartą";'fakeNumber ';"fakeBank";" ";'fakeNumber';-55;PLN;;;;;"fakeAccount";;;;;;
+
+
+"Dokument ma charakter informacyjny, nie stanowi dowodu księgowego";

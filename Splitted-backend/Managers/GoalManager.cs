@@ -4,6 +4,7 @@ using Models.DTOs.Outgoing.Insights;
 using Models.Entities;
 using Models.Enums;
 using Splitted_backend.EntitiesFilters;
+using Splitted_backend.Utils.TimeProvider;
 
 namespace Splitted_backend.Managers
 {
@@ -17,8 +18,8 @@ namespace Splitted_backend.Managers
             { GoalTypeEnum.ExpensesLimit, "Expenses limit" }
         };
 
-        private static Dictionary<GoalTypeEnum, Func<GoalGetDTO, Budget, double>> GoalTypeToPercentagesMapping { get; }
-            = new Dictionary<GoalTypeEnum, Func<GoalGetDTO, Budget, double>>
+        private static Dictionary<GoalTypeEnum, Func<GoalGetDTO, Budget, ITimeProvider, double>> GoalTypeToPercentagesMapping { get; }
+            = new Dictionary<GoalTypeEnum, Func<GoalGetDTO, Budget, ITimeProvider, double>>
         {
             { GoalTypeEnum.AccountBalance, CountPercentageInBudgetBalance},
             { GoalTypeEnum.AverageExpenses, CountPercentageInAverageExpenses},
@@ -35,12 +36,13 @@ namespace Splitted_backend.Managers
             goal.Name = name;
         }
 
-        public static void CountPercentages(List<GoalGetDTO> goalGetDTOs, Budget budget)
+        public static void CountPercentages(List<GoalGetDTO> goalGetDTOs, Budget budget, ITimeProvider timeProvider)
         {
-            goalGetDTOs.ForEach(g => g.Percentage = GoalTypeToPercentagesMapping[g.GoalType](g, budget));
+            goalGetDTOs.ForEach(g => g.Percentage = GoalTypeToPercentagesMapping[g.GoalType](g, budget, timeProvider));
         }
 
-        public static double CountPercentageInBudgetBalance(GoalGetDTO goalGetDTO, Budget budget)
+        private static double CountPercentageInBudgetBalance(GoalGetDTO goalGetDTO, Budget budget, 
+            ITimeProvider timeProvider)
         {
             double percentage = decimal.ToDouble(budget.BudgetBalance / goalGetDTO.Amount * 100);
             percentage = percentage < 0 ? 0 : percentage;
@@ -49,10 +51,11 @@ namespace Splitted_backend.Managers
             return Math.Round(percentage, 2);
         }
 
-        public static double CountPercentageInAverageExpenses(GoalGetDTO goalGetDTO, Budget budget)
+        private static double CountPercentageInAverageExpenses(GoalGetDTO goalGetDTO, Budget budget, 
+            ITimeProvider timeProvider)
         {
             TransactionsFilter transactionsFilter = new TransactionsFilter(
-                dates: (goalGetDTO.CreationDate, DateTime.Today),
+                dates: (goalGetDTO.CreationDate, timeProvider.Today()),
                 amounts: (null, 0),
                 category: goalGetDTO.Category
             );
@@ -71,10 +74,11 @@ namespace Splitted_backend.Managers
             return Math.Round(percentage, 2);
         }
 
-        public static double CountPercentageInMaxExpenses(GoalGetDTO goalGetDTO, Budget budget)
+        private static double CountPercentageInMaxExpenses(GoalGetDTO goalGetDTO, Budget budget, 
+            ITimeProvider timeProvider)
         {
             TransactionsFilter transactionsFilter = new TransactionsFilter(
-                dates: (goalGetDTO.CreationDate, DateTime.Today),
+                dates: (goalGetDTO.CreationDate, timeProvider.Today()),
                 amounts: (null, 0),
                 category: goalGetDTO.Category
             );
@@ -87,7 +91,7 @@ namespace Splitted_backend.Managers
             int T = (goalGetDTO.Deadline - goalGetDTO.CreationDate).Days + 1;
             decimal expensesDailyGoal = goalGetDTO.Amount / T;
 
-            int t =  (DateTime.Today - goalGetDTO.CreationDate).Days + 1;
+            int t =  (timeProvider.Today() - goalGetDTO.CreationDate).Days + 1;
             decimal expensesDailyActual = expenses / t;
 
             double b = (double)t / T;

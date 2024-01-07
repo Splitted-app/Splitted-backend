@@ -1,6 +1,7 @@
 ﻿using Azure.Storage.Blobs;
 using ExternalServices.Extensions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,13 +21,13 @@ namespace ExternalServices.StorageClient
         }
 
 
-        private void IntializeBlobContainerClient(IConfiguration configuration)
+        protected virtual void IntializeBlobContainerClient(IConfiguration configuration)
         {
             BlobServiceClient blobServiceClient = new BlobServiceClient(configuration["ConnectionStrings:BlobStorage"]);
             blobContainerClient = blobServiceClient.GetBlobContainerClient("profile-pictures");
         }
 
-        private byte[]? GetBytesFromEncodedPicture(string encodedPicture)
+        protected virtual byte[]? GetBytesFromEncodedPicture(string encodedPicture)
         {
             string encodedBytes = encodedPicture.Split(",")[1];
 
@@ -34,6 +35,17 @@ namespace ExternalServices.StorageClient
             bool converted = Convert.TryFromBase64String(encodedBytes, buffer, out int bytesWritten);
 
             return converted ? buffer.ToArray() : null;
+        }
+
+        protected virtual async Task<string> UploadToBlob(string filename, byte[] bytes)
+        {
+            BlobClient blobClient = blobContainerClient.GetBlobClient(filename);
+            using (MemoryStream stream = new MemoryStream(bytes))
+            {
+                await blobClient.UploadAsync(stream, true);
+            }
+
+            return blobClient.Uri.ToString();
         }
 
         public async Task<string?> UploadProfilePicture(string encodedPicture)
@@ -45,15 +57,7 @@ namespace ExternalServices.StorageClient
             string filename = Guid.NewGuid().ToString() + "_profile_picture" + 
                 encodedPicture.GetExtensionFromBase64String();
 
-            BlobClient blobClient = blobContainerClient.GetBlobClient(filename);
-            using (MemoryStream stream = new MemoryStream(bytes))
-            {
-                await blobClient.UploadAsync(stream, true);
-            }
-
-            return blobClient.Uri.ToString();
+            return await UploadToBlob(filename, bytes);
         }
-
-
     }
 }

@@ -14,9 +14,12 @@ namespace Splitted_backend.Utils
 
         public static IEnumerable<DateTime> EachMonth(DateTime dateFrom, DateTime dateTo)
         {
-            for (DateTime month = dateFrom.Date; month.Date <= dateTo.Date; month = month.AddMonths(1))
+            DateTime start = new DateTime(dateFrom.Year, dateFrom.Month, 1);
+            DateTime end = new DateTime(dateTo.Year, dateTo.Month, 1);
+
+            for (; start <= end; start = start.AddMonths(1))
             {
-                yield return month;
+                yield return start;
             }
         }
     }

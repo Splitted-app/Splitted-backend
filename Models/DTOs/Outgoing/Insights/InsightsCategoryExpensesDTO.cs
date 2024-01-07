@@ -10,7 +10,7 @@ namespace Models.DTOs.Outgoing.Insights
 {
     public class InsightsCategoryExpensesDTO
     {
-        public string? CategoryName { get; set; }
+        public string CategoryName { get; set; }
 
         [Column(TypeName = "money")]
         public decimal Expenses { get; set; }

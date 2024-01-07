@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Models.CsvModels;
 using Models.DTOs.Outgoing.Transaction;
 using Models.Entities;
@@ -23,11 +24,22 @@ namespace AIService
         private string mainAIModule { get; }
 
 
+        public PythonExecuter(string pythonDllPath, string aiCatalogPath, string mainAIModule)
+        {
+            this.pythonDllPath = Path.Combine(Directory.GetCurrentDirectory(), pythonDllPath);
+            this.aiCatalogPath = Path.Combine(Directory.GetCurrentDirectory(), aiCatalogPath);
+            this.mainAIModule = Path.GetFileNameWithoutExtension(Path.Combine(aiCatalogPath, mainAIModule));
+
+            InitializeExecuter();
+        }
+
+        [ActivatorUtilitiesConstructor]
         public PythonExecuter(IConfiguration configuration)
         {
             pythonDllPath = Path.Combine(Directory.GetCurrentDirectory(), configuration["DllPath"]);
             aiCatalogPath = Path.Combine(Directory.GetCurrentDirectory(), "../AIService/AIFiles");
             mainAIModule = Path.GetFileNameWithoutExtension(Path.Combine(aiCatalogPath, "main.py"));
+
             InitializeExecuter();
         }
 

@@ -558,7 +558,7 @@ namespace Splitted_backend.Controllers
 
                 decimal debt = (budget.BudgetType.Equals(BudgetTypeEnum.Personal)
                     || budget.BudgetType.Equals(BudgetTypeEnum.Family)) ? 0
-                    : ModeManager.GetUserDebt(budget, userId, budget.UserBudgets.Count());
+                    : ModeManager.GetUserDebt(budget, userId);
                 InsightsIncomeExpensesDTO incomeExpensesDTO = InsightsManager.GetIncomeExpenses(transactionsFiltered);
 
                 foreach (Transaction transactionFiltered in transactionsFiltered)

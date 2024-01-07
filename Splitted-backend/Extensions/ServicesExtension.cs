@@ -9,6 +9,7 @@ using Models.EmailModels;
 using ExternalServices.EmailSender;
 using AIService;
 using ExternalServices.StorageClient;
+using Splitted_backend.Utils.TimeProvider;
 
 namespace Splitted_backend.Extensions
 {
@@ -21,6 +22,7 @@ namespace Splitted_backend.Extensions
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IStorageClient, StorageClient>();
+            services.AddScoped<ITimeProvider, TimeProvider>();
 
             services.AddSingleton(configuration
                 .GetSection("emailConfiguration")

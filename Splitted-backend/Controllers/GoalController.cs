@@ -15,6 +15,7 @@ using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
+using Splitted_backend.Utils.TimeProvider;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Security.Claims;
 
@@ -28,16 +29,20 @@ namespace Splitted_backend.Controllers
 
         private IMapper mapper { get; }
 
+        private ITimeProvider timeProvider { get; }
+
         private IRepositoryWrapper repositoryWrapper { get; }
+
 
         private UserManager<User> userManager { get; }
 
 
-        public GoalController(ILogger<GoalController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper,
-            UserManager<User> userManager)
+        public GoalController(ILogger<GoalController> logger, IMapper mapper, ITimeProvider timeProvider, 
+            IRepositoryWrapper repositoryWrapper, UserManager<User> userManager)
         {
             this.logger = logger;
             this.mapper = mapper;
+            this.timeProvider = timeProvider;
             this.repositoryWrapper = repositoryWrapper;
             this.userManager = userManager;
         }
@@ -65,7 +70,7 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
-                if (((DateTime)goalPostDTO.Deadline - DateTime.Today).Days <= 0)
+                if (((DateTime)goalPostDTO.Deadline - timeProvider.Today()).Days <= 0)
                     return BadRequest("Deadline has to be greater than today's date.");
 
                 Goal goal = mapper.Map<Goal>(goalPostDTO);
@@ -117,7 +122,7 @@ namespace Splitted_backend.Controllers
                 if (!user.Goals.Any(g => g.Id.Equals(goal.Id)))
                     return StatusCode(403, $"Goal with id: {goal.Id} doesn't belong to user.");
 
-                if (goalPutDTO.Deadline is not null && ((DateTime)goalPutDTO.Deadline - DateTime.Today).Days <= 0)
+                if (goalPutDTO.Deadline is not null && ((DateTime)goalPutDTO.Deadline - timeProvider.Today()).Days <= 0)
                     return BadRequest("Deadline has to be greater than today's date.");
 
                 if (goalPutDTO.IsMain ?? false)

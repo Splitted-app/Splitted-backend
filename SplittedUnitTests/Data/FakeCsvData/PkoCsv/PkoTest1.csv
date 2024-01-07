@@ -1,0 +1,4 @@
+"Data operacji","Data waluty","Typ transakcji","Kwota","Waluta","Opis transakcji","","",""
+"2023-12-21","2023-12-21","P³atnoœæ kart¹","-59.89","PLN","Tytu³ : fakeNumber","Lokalizacja : Adres : BIEDRONKA Miasto : PLOCK Kraj : POLSKA","Data i czas operacji : fakeDate","Kwota Cash Back : fakeNumber","Oryginalna kwota operacji : -59.89","Numer karty : fakeNumber"
+"2023-12-27","2023-12-27","Przelew na konto","2000","PLN","Rachunek nadawcy : fakeNumber","Nazwa nadawcy : Mateusz Tobiasz","Adres nadawcy : fakeAddress","Tytu³ : Przelew"
+"2023-12-29","2023-12-29","P³atnoœæ kart¹","-129.47","PLN","Tytu³ : fakeNumber","Lokalizacja : Adres : CARREFOUR Miasto : WARSZAWA Kraj : POLSKA","Data i czas operacji : fakeDate","Kwota Cash Back : fakeNumber","Oryginalna kwota operacji : -129.47","Numer karty : fakeNumber"

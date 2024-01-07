@@ -20,6 +20,7 @@ using Splitted_backend.Extensions;
 using Splitted_backend.Interfaces;
 using Splitted_backend.Managers;
 using Splitted_backend.Models.Entities;
+using Splitted_backend.Utils.TimeProvider;
 using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
@@ -34,6 +35,8 @@ namespace Splitted_backend.Controllers
 
         private IMapper mapper { get; }
 
+        private ITimeProvider timeProvider { get; }
+
         private IRepositoryWrapper repositoryWrapper { get; }
 
         private IEmailSender emailSender { get; }
@@ -47,12 +50,14 @@ namespace Splitted_backend.Controllers
         private AuthenticationManager authenticationManager { get; }
 
 
-        public UserController(ILogger<UserController> logger, IMapper mapper, IRepositoryWrapper repositoryWrapper, 
-            IEmailSender emailSender, IStorageClient storageClient, UserManager<User> userManager, 
-            RoleManager<IdentityRole<Guid>> roleManager, IConfiguration configuration)
+        public UserController(ILogger<UserController> logger, IMapper mapper, ITimeProvider timeProvider, 
+            IRepositoryWrapper repositoryWrapper, IEmailSender emailSender, IStorageClient storageClient,
+            UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, 
+            IConfiguration configuration)
         {
             this.logger = logger;
             this.mapper = mapper;
+            this.timeProvider = timeProvider;
             this.repositoryWrapper = repositoryWrapper;
             this.emailSender = emailSender;
             this.storageClient = storageClient;
@@ -112,7 +117,8 @@ namespace Splitted_backend.Controllers
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Invalid token")]
         [SwaggerResponse(StatusCodes.Status404NotFound, "User not found")]
         [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
-        public async Task<IActionResult> ConfirmEmail([FromQuery, BindRequired] string token, [FromQuery, BindRequired] string email)
+        public async Task<IActionResult> ConfirmEmail([FromQuery, BindRequired] string token, 
+            [FromQuery, BindRequired] string email)
         {
             User user = await userManager.FindByEmailAsync(email);
             if (user is null)
@@ -580,7 +586,7 @@ namespace Splitted_backend.Controllers
 
                 GoalGetDTO? mainGoalGetDTO = mainGoal is null ? null : mapper.Map<GoalGetDTO>(mainGoal);
                 if (mainGoalGetDTO is not null)
-                    GoalManager.CountPercentages(new List<GoalGetDTO> { mainGoalGetDTO }, budget);
+                    GoalManager.CountPercentages(new List<GoalGetDTO> { mainGoalGetDTO }, budget, timeProvider);
 
                 return Ok(mainGoalGetDTO);
             }
@@ -611,7 +617,7 @@ namespace Splitted_backend.Controllers
                     b.BudgetType.Equals(BudgetTypeEnum.Family));
 
                 List<GoalGetDTO> userGoals = mapper.Map<List<GoalGetDTO>>(user.Goals);
-                GoalManager.CountPercentages(userGoals, budget);
+                GoalManager.CountPercentages(userGoals, budget, timeProvider);
 
                 return Ok(userGoals);
             }

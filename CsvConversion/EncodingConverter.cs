@@ -35,7 +35,6 @@ namespace CsvConversion
             }
         }
 
-
         internal static void Encode(string path, Encoding originalEncoding, Encoding finalEncoding)
         {
             Encoding determinedEncoding = DetermineEncoding(path);

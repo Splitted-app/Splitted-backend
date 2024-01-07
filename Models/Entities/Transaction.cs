@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Models.Enums;
+using Models.Interfaces;
 using Splitted_backend.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 namespace Models.Entities
 {
     [Table("Transactions")]
-    public class Transaction
+    public class Transaction : IEntity, ICloneable
     {
         public Guid Id { get; set; }
 
@@ -81,5 +82,24 @@ namespace Models.Entities
             return (Amount, Currency, Date, Description).GetHashCode();
         }
 
+        public object Clone()
+        {
+            return new Transaction
+            {
+                Id = Id,
+                Amount = Amount,
+                Currency = Currency,
+                Date = Date,
+                Description = Description,
+                TransactionType = TransactionType,
+                BankCategory = BankCategory,
+                AutoCategory = AutoCategory,
+                UserCategory = UserCategory,
+                BudgetId = BudgetId,
+                UserId = UserId,
+                DuplicatedTransactionId = DuplicatedTransactionId,
+                DuplicatedTransactions = DuplicatedTransactions,
+            };
+        }
     }
 }

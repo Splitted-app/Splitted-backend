@@ -1,4 +1,5 @@
 ﻿using Models.Enums;
+using Models.Interfaces;
 using Splitted_backend.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 namespace Models.Entities
 {
     [Table("Goals")]
-    public class Goal
+    public class Goal : IEntity, ICloneable
     {
         public Guid Id { get; set; }
 
@@ -33,5 +34,22 @@ namespace Models.Entities
         public Guid UserId { get; set; }
 
         public User User { get; set; } = null!;
+
+
+        public object Clone()
+        {
+            return new Goal
+            {
+                Id = Id,
+                Amount = Amount,
+                Name = Name,
+                Category = Category,
+                GoalType = GoalType,
+                CreationDate = CreationDate,
+                Deadline = Deadline,
+                IsMain = IsMain,
+                UserId = UserId,
+            };
+        }
     }
 }

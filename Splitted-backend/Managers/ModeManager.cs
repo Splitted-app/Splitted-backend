@@ -114,15 +114,19 @@ namespace Splitted_backend.Managers
 
         public static void MakePayback(Transaction transaction, Guid? paybackTransactionId, Guid userId)
         {
-            TransactionPayBack transactionPayBack = transaction.TransactionPayBacks
-                .First(tpb => tpb.OwingUserId.Equals(userId));
+            List<TransactionPayBack> transactionPayBacks = transaction.TransactionPayBacks
+                .Where(tpb => tpb.OwingUserId.Equals(userId))
+                .ToList();
 
-            transactionPayBack.TransactionPayBackStatus = TransactionPayBackStatusEnum.WaitingForApproval;
+            transactionPayBacks.ForEach(tpb =>
+            {
+                tpb.TransactionPayBackStatus = TransactionPayBackStatusEnum.WaitingForApproval;
 
-            if (paybackTransactionId is null)
-                transactionPayBack.InCash = true;
-            else
-                transactionPayBack.PayBackTransactionId = paybackTransactionId;
+                if (paybackTransactionId is null)
+                    tpb.InCash = true;
+                else
+                    tpb.PayBackTransactionId = paybackTransactionId;
+            });
         }
 
         public static void ResolvePayback(Transaction transaction, Guid transactionPayBackId, bool accept)
@@ -140,7 +144,7 @@ namespace Splitted_backend.Managers
             }            
         }
 
-        public static decimal GetUserDebt(Budget budget, Guid userId, int usersNumber)
+        public static decimal GetUserDebt(Budget budget, Guid userId)
         {
             decimal debt = budget.Transactions.Aggregate(0M, (current, next) =>
             {
