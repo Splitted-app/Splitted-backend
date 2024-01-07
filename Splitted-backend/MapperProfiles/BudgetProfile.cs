@@ -20,6 +20,7 @@ namespace Splitted_backend.MapperProfiles
                 .ForMember(dest => dest.Name, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Name))))
                 .ForMember(dest => dest.Currency, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.Currency))))
                 .ForMember(dest => dest.BudgetBalance, opt => opt.Condition(src => src.SetProperties.Contains(nameof(src.BudgetBalance))));
+            
             CreateMap<Budget, BudgetCreatedDTO>();
             CreateMap<Budget, UserBudgetGetDTO>();
             CreateMap<Budget, BudgetGetDTO>();

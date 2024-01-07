@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Splitted-backend\Splitted-backend.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Data\FakeAIServiceData\" />
+  </ItemGroup>
+
 </Project>
