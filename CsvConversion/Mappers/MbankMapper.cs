@@ -4,6 +4,7 @@ using CsvHelper.Configuration;
 using Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -34,7 +35,7 @@ namespace CsvConversion.Mappers
         {
             string amountCurrency = row.GetField<string>("Kwota")!;
             string amount = amountCurrency.Split()[0];
-            return decimal.Parse(amount.Replace(".", ","));
+            return decimal.Parse(amount.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture);
         }
 
         protected override string MapDescription(IReaderRow row)

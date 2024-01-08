@@ -2,6 +2,7 @@
 using CsvHelper;
 using CsvHelper.Configuration;
 using Models.Enums;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -24,7 +25,8 @@ namespace CsvConversion.Mappers
 
         private string MapCurrency(IReaderRow row) => currency;
 
-        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>(5)!.Replace(".", ","));
+        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>(5)!
+            .Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture);
 
         protected override string MapDescription(IReaderRow row)
         {

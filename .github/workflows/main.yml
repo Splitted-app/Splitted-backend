@@ -27,16 +27,12 @@ jobs:
         
       - name: Build
         run: dotnet build --configuration Release --no-restore
-
-  test:
-    needs: build
-    runs-on: windows-latest
-    steps:
+        
       - name: Unit tests
         run: dotnet test --no-restore
         
   deploy:
-    needs: test
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Log in to Azure

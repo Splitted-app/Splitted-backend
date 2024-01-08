@@ -5,6 +5,7 @@ using System.Runtime.Versioning;
 using System.Data;
 using CsvConversion.Extensions;
 using Models.Enums;
+using System.Globalization;
 
 namespace CsvConversion.Mappers
 {
@@ -45,7 +46,8 @@ namespace CsvConversion.Mappers
 
             foreach (var possibleAmountName in possibleAmountNames)
             {
-                ifConverted = decimal.TryParse(row.GetField<string>(possibleAmountName)!.Replace(".", ","), out amount);
+                ifConverted = decimal.TryParse(row.GetField<string>(possibleAmountName)!.Replace(",", "."),
+                    NumberStyles.Any, CultureInfo.InvariantCulture, out amount);
                 if (ifConverted) return amount;
             }
 

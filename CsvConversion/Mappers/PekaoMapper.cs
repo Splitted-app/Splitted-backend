@@ -4,6 +4,7 @@ using CsvHelper.Configuration;
 using Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,7 +24,8 @@ namespace CsvConversion.Mappers
         }
 
 
-        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota operacji")!.Replace(".", ","));
+        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota operacji")!
+            .Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture);
 
         protected override string MapDescription(IReaderRow row)
         {

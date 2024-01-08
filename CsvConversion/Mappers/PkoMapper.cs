@@ -4,6 +4,7 @@ using CsvHelper.Configuration;
 using Models.Enums;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -23,7 +24,8 @@ namespace CsvConversion.Mappers
             Map(transaction => transaction.TransactionType).Convert(args => MapTransactionType(args.Row.GetField<string>("Typ transakcji")!.ToLower()));
         }
 
-        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota")!.Replace(".", ","));
+        protected override decimal MapAmount(IReaderRow row) => decimal.Parse(row.GetField<string>("Kwota")!
+            .Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture);
 
         private string MapPaymentDescription(IReaderRow row, int transactionDescriptionIndex)
         {
