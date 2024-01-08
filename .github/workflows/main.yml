@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  BuildAndTest:
     runs-on: windows-latest
     steps:
       - name: Code check out
@@ -29,10 +29,10 @@ jobs:
         run: dotnet build --configuration Release --no-restore
         
       - name: Unit tests
-        run: dotnet test --no-restore
+        run: dotnet test --no-restore SplittedUnitTests
         
-  deploy:
-    needs: build
+  Deploy:
+    needs: BuildAndTest
     runs-on: ubuntu-latest
     steps:
       - name: Log in to Azure
