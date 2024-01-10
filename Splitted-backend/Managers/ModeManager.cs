@@ -130,11 +130,14 @@ namespace Splitted_backend.Managers
             }
             else
             {
+                if (budget.Users.Count() == 2)
+                {
+                    repositoryWrapper.Budgets.Delete(budget);
+                    return;
+                }
+
                 user.Budgets.Remove(budget);
                 budget.Transactions.RemoveAll(t => t.UserId.Equals(user.Id));  
-
-                if (budget.Users.Count() == 1)
-                    repositoryWrapper.Budgets.Delete(budget);
             }
         }
 

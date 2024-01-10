@@ -193,6 +193,9 @@ namespace Splitted_backend.Controllers
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
+                if (userIdsList.Any(ui => ui.Equals(userId)))
+                    return BadRequest("You cannot create temporary mode with yourself.");
+
                 List<User> otherUsers = await userManager.FindMultipleByIdsWithIncludesAsync(userIdsList,
                     (u => u.Budgets, null, null));
                 if (userIdsList.Count != otherUsers.Count)
@@ -201,10 +204,10 @@ namespace Splitted_backend.Controllers
                 Budget? userFamilyBudget = user.Budgets.FirstOrDefault(b => b.BudgetType.Equals(BudgetTypeEnum.Family));
                 if (userFamilyBudget is not null && 
                     otherUsers.Any(ou => ou.Budgets.Any(b => b.Id.Equals(userFamilyBudget.Id))))
-                    return StatusCode(403, "You cannot create partner mode with your family member.");
+                    return StatusCode(403, "You cannot create temporary mode with your family member.");
 
                 if (user.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Temporary) && b.Name.Equals(temporaryModePostDTO.Name))
-                    && otherUsers.Any(ou => ou.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Temporary)
+                    || otherUsers.Any(ou => ou.Budgets.Any(b => b.BudgetType.Equals(BudgetTypeEnum.Temporary)
                     && b.Name.Equals(temporaryModePostDTO.Name))))
                     return Conflict($"Temporary budget with name {temporaryModePostDTO.Name} already exists at one of the users.");
 
