@@ -14,20 +14,8 @@ jobs:
   BuildAndTest:
     runs-on: windows-latest
     steps:
-      - name: Code check out
-        uses: actions/checkout@v3
-        
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '6.0.402'
-          
-      - name: Install dependencies
-        run: dotnet restore
-        
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-        
+      - name: Dotnet build
+        uses: actions/build-dotnet-action@v1
       - name: Unit tests
         run: dotnet test --no-restore SplittedUnitTests
         
