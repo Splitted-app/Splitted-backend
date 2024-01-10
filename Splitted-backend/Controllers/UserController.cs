@@ -420,6 +420,51 @@ namespace Splitted_backend.Controllers
         }
 
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpDelete("budgets/{budgetId}")]
+        [SwaggerResponse(StatusCodes.Status204NoContent, "Budget left")]
+        [SwaggerResponse(StatusCodes.Status400BadRequest, "Invalid path parameter")]
+        [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]
+        [SwaggerResponse(StatusCodes.Status403Forbidden, "User is not a part of the budget or invalid budget type")]
+        [SwaggerResponse(StatusCodes.Status404NotFound, "User or budget not found")]
+        [SwaggerResponse(StatusCodes.Status500InternalServerError, "Internal server error")]
+        public async Task<IActionResult> LeaveBudget([FromRoute, BindRequired] Guid budgetId)
+        {
+            try
+            {
+                Guid userId = new Guid(User.FindFirstValue("user_id"));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null, null));
+                if (user is null)
+                    return NotFound($"User with given id: {userId} doesn't exist.");
+
+                Budget? budget = await repositoryWrapper.Budgets
+                    .GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId), 
+                    (b => b.Users, null, null), (b => b.Transactions, null, null));
+                if (budget is null)
+                    return NotFound($"Budget with given id: {budgetId} doesn't exist.");
+
+                bool ifBudgetValid = budget.Users.Any(u => u.Id.Equals(userId));
+                if (!ifBudgetValid)
+                    return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
+
+                if (budget.BudgetType.Equals(BudgetTypeEnum.Personal))
+                    return StatusCode(403, "You cannot leave a personal budget.");
+
+                List<User> otherUsers = budget.Users
+                    .Where(u => !u.Id.Equals(userId))
+                    .ToList();
+                await ModeManager.LeaveMode(repositoryWrapper, user, otherUsers, budget);
+
+                await repositoryWrapper.SaveChanges();
+                return NoContent();
+            }
+            catch (Exception exception)
+            {
+                logger.LogError($"Error occurred inside LeaveBudget method. {exception}.");
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet("search")]
         [SwaggerResponse(StatusCodes.Status200OK, "Users returned", typeof(List<UserGetDTO>))]
         [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized to perform the action")]

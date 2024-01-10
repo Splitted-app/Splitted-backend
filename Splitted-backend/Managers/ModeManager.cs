@@ -81,6 +81,63 @@ namespace Splitted_backend.Managers
             return temporaryBudget;
         }
 
+        public static async Task LeaveMode(IRepositoryWrapper repositoryWrapper,
+            User user, List<User> otherUsers, Budget budget)
+        {
+            if (budget.BudgetType.Equals(BudgetTypeEnum.Family))
+            {
+                User otherUser = otherUsers[0];
+
+                Budget firstBudget = new Budget
+                {
+                    BudgetType = BudgetTypeEnum.Personal,
+                    Currency = budget.Currency,
+                    Name = string.Empty,
+                    Bank = budget.Bank,
+                    BudgetBalance = 0,
+                    CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
+                };
+
+                Budget secondBudget = new Budget
+                {
+                    BudgetType = BudgetTypeEnum.Personal,
+                    Currency = budget.Currency,
+                    Name = string.Empty,
+                    Bank = budget.Bank,
+                    BudgetBalance = 0,
+                    CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
+                };
+
+                await repositoryWrapper.Budgets.CreateMultipleAsync(new List<Budget> { firstBudget, secondBudget });
+
+                budget.Transactions.ForEach(t =>
+                {
+                    if (t.UserId.Equals(user.Id)) t.BudgetId = firstBudget.Id;
+                    else t.BudgetId = secondBudget.Id;
+                });
+
+                List<Transaction> firstBudgetTransactions = budget.Transactions
+                    .Where(t => t.BudgetId.Equals(firstBudget.Id))
+                    .ToList();
+                List<Transaction> secondBudgetTransactions = budget.Transactions
+                    .Where(t => t.BudgetId.Equals(secondBudget.Id))
+                    .ToList();
+
+                user.Budgets.Add(firstBudget);
+                otherUser.Budgets.Add(secondBudget);
+
+                repositoryWrapper.Budgets.Delete(budget);
+            }
+            else
+            {
+                user.Budgets.Remove(budget);
+                budget.Transactions.RemoveAll(t => t.UserId.Equals(user.Id));  
+
+                if (budget.Users.Count() == 1)
+                    repositoryWrapper.Budgets.Delete(budget);
+            }
+        }
+
         public static void DeterminePayBacks(List<Transaction> transactions, Guid userId, List<Guid> otherUserIds)
         {
             foreach (Transaction transaction in transactions)
