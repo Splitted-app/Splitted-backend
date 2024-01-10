@@ -51,6 +51,9 @@ namespace Splitted_backend.DbContexts
             modelBuilder.Entity<TransactionPayBack>()
                 .HasOne(tpb => tpb.OriginalTransaction)
                 .WithMany(t => t.TransactionPayBacks);
+            modelBuilder.Entity<TransactionPayBack>()
+                .HasOne(tpb => tpb.PayBackTransaction)
+                .WithMany(t => t.TransactionPayBacksResolved);
             modelBuilder.Entity<Transaction>()
                 .HasOne(tpb => tpb.DuplicatedTransaction)
                 .WithMany(t => t.DuplicatedTransactions);

@@ -135,12 +135,13 @@ namespace Splitted_backend.Controllers
                 }
 
                 List<Transaction> transactions = await repositoryWrapper.Transactions.GetEntitiesByConditionAsync(t => transactionIdsList.Contains(t.Id),
-                    (t => t.DuplicatedTransactions, null , null));
+                    (t => t.DuplicatedTransactions, null, null), 
+                    (t => t.TransactionPayBacksResolved, null, null));
                 if (transactionIdsList.Count != transactions.Count)
                     return NotFound("Some of transactions were not found.");
 
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.UserBudgets, null, null));
+                User? user = await userManager.FindByIdWithIncludesAsync(userId, (u => u.Budgets, null, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
 
@@ -149,7 +150,7 @@ namespace Splitted_backend.Controllers
                 if (budget is null)
                     return NotFound($"Budget with id {budgetId} doesn't exist.");
 
-                bool ifBudgetValid = user.UserBudgets.Any(ub => ub.BudgetId.Equals(budgetId));
+                bool ifBudgetValid = user.Budgets.Any(b => b.Id.Equals(budgetId));
                 if (!ifBudgetValid)
                     return StatusCode(403, $"User with id {userId} isn't a part of the budget with id {budget.Id}");
 
@@ -158,6 +159,7 @@ namespace Splitted_backend.Controllers
                     .ToList());
                 budget.BudgetBalance -= (incomeExpensesDTO.Expenses + incomeExpensesDTO.Income);
 
+                transactions.ForEach(t => t.TransactionPayBacksResolved.ForEach(tpb => tpb.PayBackTransactionId = null));
                 transactions.ForEach(t => t.DuplicatedTransactions.ForEach(dt => dt.DuplicatedTransactionId = null));
                 repositoryWrapper.Transactions.FindDuplicates(budget.Transactions, budget.Transactions);
 

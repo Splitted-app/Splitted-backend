@@ -182,7 +182,7 @@ namespace Splitted_backend.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Budgets");
+                    b.ToTable("Budgets", (string)null);
                 });
 
             modelBuilder.Entity("Models.Entities.Goal", b =>
@@ -221,7 +221,7 @@ namespace Splitted_backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Goals");
+                    b.ToTable("Goals", (string)null);
                 });
 
             modelBuilder.Entity("Models.Entities.Transaction", b =>
@@ -277,7 +277,7 @@ namespace Splitted_backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("Models.Entities.TransactionPayBack", b =>
@@ -318,7 +318,7 @@ namespace Splitted_backend.Migrations
 
                     b.HasIndex("PayBackTransactionId");
 
-                    b.ToTable("TransactionPayBacks");
+                    b.ToTable("TransactionPayBacks", (string)null);
                 });
 
             modelBuilder.Entity("Models.Entities.UserBudget", b =>
@@ -333,7 +333,7 @@ namespace Splitted_backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserBudgets");
+                    b.ToTable("UserBudgets", (string)null);
                 });
 
             modelBuilder.Entity("Splitted_backend.Models.Entities.User", b =>
@@ -423,7 +423,7 @@ namespace Splitted_backend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserUser");
+                    b.ToTable("UserUser", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

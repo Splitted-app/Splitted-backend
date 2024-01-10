@@ -81,8 +81,8 @@ namespace Splitted_backend.Managers
             return temporaryBudget;
         }
 
-        public static async Task LeaveMode(IRepositoryWrapper repositoryWrapper,
-            User user, List<User> otherUsers, Budget budget)
+        public static void LeaveMode(IRepositoryWrapper repositoryWrapper,
+            User? user, List<User> otherUsers, Budget budget)
         {
             if (budget.BudgetType.Equals(BudgetTypeEnum.Family))
             {
@@ -108,36 +108,40 @@ namespace Splitted_backend.Managers
                     CreationDate = DateTime.Parse(DateTime.Now.ToString("yyyy-MM-dd")),
                 };
 
-                await repositoryWrapper.Budgets.CreateMultipleAsync(new List<Budget> { firstBudget, secondBudget });
+                repositoryWrapper.Budgets.Create(secondBudget);
 
                 budget.Transactions.ForEach(t =>
                 {
-                    if (t.UserId.Equals(user.Id)) t.BudgetId = firstBudget.Id;
-                    else t.BudgetId = secondBudget.Id;
+                    if (t.UserId.Equals(otherUser.Id)) t.BudgetId = secondBudget.Id;
+                    else t.BudgetId = firstBudget.Id;
                 });
 
-                List<Transaction> firstBudgetTransactions = budget.Transactions
-                    .Where(t => t.BudgetId.Equals(firstBudget.Id))
-                    .ToList();
                 List<Transaction> secondBudgetTransactions = budget.Transactions
                     .Where(t => t.BudgetId.Equals(secondBudget.Id))
                     .ToList();
 
-                user.Budgets.Add(firstBudget);
                 otherUser.Budgets.Add(secondBudget);
 
-                repositoryWrapper.Budgets.Delete(budget);
+                if (user is not null)
+                {
+                    repositoryWrapper.Budgets.Create(firstBudget);
+
+                    List<Transaction> firstBudgetTransactions = budget.Transactions
+                        .Where(t => t.BudgetId.Equals(firstBudget.Id))
+                        .ToList();
+
+                    user.Budgets.Add(firstBudget);
+                }
             }
             else
             {
-                if (budget.Users.Count() == 2)
+                if (user is not null)
                 {
-                    repositoryWrapper.Budgets.Delete(budget);
-                    return;
+                    user.Budgets.Remove(budget);
+                    budget.Transactions.RemoveAll(t => t.UserId.Equals(user.Id));
+                    budget.Transactions.ForEach(t => t.TransactionPayBacks.RemoveAll(tpb =>
+                        tpb.OwingUserId.Equals(user.Id) || tpb.OwedUserId.Equals(user.Id)));
                 }
-
-                user.Budgets.Remove(budget);
-                budget.Transactions.RemoveAll(t => t.UserId.Equals(user.Id));  
             }
         }
 

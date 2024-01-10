@@ -359,9 +359,24 @@ namespace Splitted_backend.Controllers
             try
             {
                 Guid userId = new Guid(User.FindFirstValue("user_id"));
-                User? user = await userManager.FindByIdAsync(userId.ToString());
+                User? user = await userManager.FindByIdWithIncludesAsync(userId,
+                    (u => u.Budgets, b => ((Budget)b).Transactions, t => ((Transaction)t).TransactionPayBacks), 
+                    (u => u.Budgets, b => ((Budget)b).Users, null));
                 if (user is null)
                     return NotFound($"User with given id: {userId} doesn't exist.");
+
+                user.Budgets
+                    .Where(b => b.BudgetType.Equals(BudgetTypeEnum.Partner) ||
+                        b.BudgetType.Equals(BudgetTypeEnum.Temporary))
+                    .ToList()
+                    .ForEach(b => b.Transactions.ForEach(t => t.TransactionPayBacks.RemoveAll(tpb =>
+                        tpb.OwingUserId.Equals(userId) || tpb.OwedUserId.Equals(userId))));
+                    
+                user.Budgets.ForEach(b => ModeManager.LeaveMode(repositoryWrapper, null, 
+                    b.Users.Where(u => !u.Id.Equals(userId)).ToList(),
+                    b));
+
+                repositoryWrapper.Budgets.DeleteMultiple(user.Budgets.Where(b => b.Users.Count() <= 2));
 
                 await userManager.DeleteAsync(user);
                 return NoContent();
@@ -438,7 +453,10 @@ namespace Splitted_backend.Controllers
 
                 Budget? budget = await repositoryWrapper.Budgets
                     .GetEntityOrDefaultByConditionAsync(b => b.Id.Equals(budgetId), 
-                    (b => b.Users, null, null), (b => b.Transactions, null, null));
+                    (b => b.Users, null, null), 
+                    (b => b.Transactions, 
+                    t => ((Transaction)t).TransactionPayBacks, 
+                    null));
                 if (budget is null)
                     return NotFound($"Budget with given id: {budgetId} doesn't exist.");
 
@@ -452,7 +470,10 @@ namespace Splitted_backend.Controllers
                 List<User> otherUsers = budget.Users
                     .Where(u => !u.Id.Equals(userId))
                     .ToList();
-                await ModeManager.LeaveMode(repositoryWrapper, user, otherUsers, budget);
+                ModeManager.LeaveMode(repositoryWrapper, user, otherUsers, budget);
+
+                if (budget.Users.Count() == 2)
+                    repositoryWrapper.Budgets.Delete(budget);
 
                 await repositoryWrapper.SaveChanges();
                 return NoContent();

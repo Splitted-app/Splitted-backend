@@ -50,6 +50,8 @@ namespace Models.Entities
 
         public List<Transaction> DuplicatedTransactions { get; set; } = new();
 
+        public List<TransactionPayBack> TransactionPayBacksResolved { get; set; } = new();
+
         public List<TransactionPayBack> TransactionPayBacks { get; set; } = new();
 
 
