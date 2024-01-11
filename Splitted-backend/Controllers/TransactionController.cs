@@ -161,6 +161,8 @@ namespace Splitted_backend.Controllers
 
                 transactions.ForEach(t => t.TransactionPayBacksResolved.ForEach(tpb => tpb.PayBackTransactionId = null));
                 transactions.ForEach(t => t.DuplicatedTransactions.ForEach(dt => dt.DuplicatedTransactionId = null));
+
+                budget.Transactions.RemoveAll(bt => transactions.Any(t => t.Id.Equals(bt.Id)));
                 repositoryWrapper.Transactions.FindDuplicates(budget.Transactions, budget.Transactions);
 
                 repositoryWrapper.Transactions.DeleteMultiple(transactions);

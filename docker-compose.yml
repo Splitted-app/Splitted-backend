@@ -13,6 +13,19 @@ services:
       - MSSQL_SA_PASSWORD=Splitted123
     networks:
       - backend
+  
+  splitted-sql-server-test:
+    image: 'mcr.microsoft.com/mssql/server:2022-latest'
+    container_name: splitted-sql-server-test
+    volumes:
+      - splitted-data-test:/var/opt/mssql
+    ports:
+      - 1633:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=TestSplitted123
+    networks:
+      - backend
 
   splitted-backend:
     build: 
@@ -45,6 +58,7 @@ services:
   
 volumes:
   splitted-data:
+  splitted-data-test:
 
 networks:
   frontend:
