@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  BuildAndTest:
+  UnitTests:
     runs-on: windows-latest
     steps:
       - name: Dotnet build
@@ -20,7 +20,7 @@ jobs:
         run: dotnet test --no-restore SplittedUnitTests
         
   Deploy:
-    needs: BuildAndTest
+    needs: UnitTests
     runs-on: ubuntu-latest
     steps:
       - name: Code check out
