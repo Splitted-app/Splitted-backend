@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: Dotnet build
         uses: Splitted-app/build-dotnet-action@v1
+  
       - name: Unit tests
         run: dotnet test --no-restore SplittedUnitTests
         
