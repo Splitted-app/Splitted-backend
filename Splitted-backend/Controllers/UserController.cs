@@ -47,13 +47,13 @@ namespace Splitted_backend.Controllers
 
         private RoleManager<IdentityRole<Guid>> roleManager { get; }
 
-        private AuthenticationManager authenticationManager { get; }
+        private BaseAuthenticationManager authenticationManager { get; }
 
 
         public UserController(ILogger<UserController> logger, IMapper mapper, ITimeProvider timeProvider, 
             IRepositoryWrapper repositoryWrapper, IEmailSender emailSender, IStorageClient storageClient,
-            UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager, 
-            IConfiguration configuration)
+            UserManager<User> userManager, RoleManager<IdentityRole<Guid>> roleManager,
+            BaseAuthenticationManager authenticationManager)
         {
             this.logger = logger;
             this.mapper = mapper;
@@ -63,7 +63,7 @@ namespace Splitted_backend.Controllers
             this.storageClient = storageClient;
             this.userManager = userManager;
             this.roleManager = roleManager;
-            this.authenticationManager = new AuthenticationManager(configuration);
+            this.authenticationManager = authenticationManager;
         }
 
 
@@ -156,7 +156,8 @@ namespace Splitted_backend.Controllers
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
-                    Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(user))),
+                    Token = authenticationManager.GenerateAccessToken(
+                        new List<Claim>(await userManager.GetClaimsAsync(user))),
                 };
 
                 user.RefreshToken = authenticationManager.GenerateRefreshToken();
@@ -196,7 +197,8 @@ namespace Splitted_backend.Controllers
 
                 UserLoggedInDTO userLoggedInDTO = new UserLoggedInDTO
                 {
-                    Token = authenticationManager.GenerateAccessToken(new List<Claim>(await userManager.GetClaimsAsync(userFound))),
+                    Token = authenticationManager.GenerateAccessToken(
+                        new List<Claim>(await userManager.GetClaimsAsync(userFound))),
                 };
 
                 userFound.RefreshToken = authenticationManager.GenerateRefreshToken();

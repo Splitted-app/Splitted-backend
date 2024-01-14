@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.25" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.1.0" />
     <PackageReference Include="Moq.EntityFrameworkCore" Version="7.0.0.2" />
+    <PackageReference Include="Respawn" Version="6.2.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
@@ -26,12 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="ControllersTests\UserControllerTests\Fixtures\" />
-    <Folder Include="Mocks\" />
+    <ProjectReference Include="..\Splitted-backend\Splitted-backend.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Splitted-backend\Splitted-backend.csproj" />
+    <Folder Include="Data\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties settings_4appsettings_1test_1json__JsonSchema="https://appsemble.app/api.json" /></VisualStudio></ProjectExtensions>
