@@ -5,7 +5,6 @@ on:
     branches:
       - dev
       - master
-      - SADMO-122-Kontynuacja-integration-testow
 
 permissions:
   id-token: write
@@ -40,29 +39,29 @@ jobs:
 
       - name: Integration tests
         run: dotnet test --no-restore SplittedIntegrationTests
-  # Deploy:
-  #   needs: UnitTests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Code check out
-  #       uses: actions/checkout@v3
+   Deploy:
+     needs: UnitTests
+     runs-on: ubuntu-latest
+     steps:
+       - name: Code check out
+         uses: actions/checkout@v3
         
-  #     - name: Log in to Azure
-  #       uses: azure/login@v1
-  #       with:
-  #         client-id: ${{ secrets.AZURE_CLIENT_ID }}
-  #         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-  #         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+       - name: Log in to Azure
+         uses: azure/login@v1
+         with:
+           client-id: ${{ secrets.AZURE_CLIENT_ID }}
+           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       
-  #     - name: Build and deploy Container App
-  #       uses: azure/container-apps-deploy-action@v1
-  #       with:
-  #         appSourcePath: ${{ github.workspace }}
-  #         acrName: splittedcontainerregistry
-  #         acrUsername: ${{ secrets.REGISTRY_USERNAME }}
-  #         acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
-  #         containerAppName: splitted-backend
-  #         containerAppEnvironment: splitted-environment
-  #         resourceGroup: splittedresources
-  #         imageToBuild: splittedcontainerregistry.azurecr.io/splitted-backend:${{ github.sha }}
-  #         dockerfilePath: Splitted-backend/Dockerfile
+       - name: Build and deploy Container App
+         uses: azure/container-apps-deploy-action@v1
+         with:
+           appSourcePath: ${{ github.workspace }}
+           acrName: splittedcontainerregistry
+           acrUsername: ${{ secrets.REGISTRY_USERNAME }}
+           acrPassword: ${{ secrets.REGISTRY_PASSWORD }}
+           containerAppName: splitted-backend
+           containerAppEnvironment: splitted-environment
+           resourceGroup: splittedresources
+           imageToBuild: splittedcontainerregistry.azurecr.io/splitted-backend:${{ github.sha }}
+           dockerfilePath: Splitted-backend/Dockerfile
