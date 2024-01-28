@@ -18,6 +18,7 @@ using SplittedIntegrationTests.Mocks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -60,133 +61,129 @@ namespace SplittedIntegrationTests.CustomWebApp
 
                 UserManager<User> userManager = (UserManager<User>)scope.ServiceProvider
                     .GetService(typeof(UserManager<User>))!;
-                RoleManager<IdentityRole<Guid>> roleManager = (RoleManager<IdentityRole<Guid>>)scope.ServiceProvider
-                    .GetService(typeof(RoleManager<IdentityRole<Guid>>))!;
 
                 User firstUser = new User
                 {
                     Email = "mateusz@example.com",
                     UserName = "mati",
                 };
-                await AddUser(firstUser, "Mati123_", userManager, roleManager);
+                await AddUser(firstUser, "Mati123_", userManager);
 
                 User secondUser = new User
                 {
                     Email = "katarzyna@example.com",
                     UserName = "kate",
                 };
-                await AddUser(secondUser, "Kate123_", userManager, roleManager);
-                
+                await AddUser(secondUser, "Kate123_", userManager);
+
                 User thirdUser = new User
                 {
                     Email = "user@example.com",
                     UserName = "user",
                 };
-                await AddUser(thirdUser, "User123_", userManager, roleManager);
+                await AddUser(thirdUser, "User123_", userManager);
 
                 firstUser.Friends.Add(secondUser);
                 secondUser.Friends.Add(firstUser);
 
-                Budget firstBudget = new Budget
-                {
-                    Bank = BankNameEnum.Ing,
-                    BudgetType = BudgetTypeEnum.Personal,
-                    Name = string.Empty,
-                    Currency = "PLN",
-                    BudgetBalance = 10000,
-                    CreationDate = DateTime.Parse("2024-01-02")
-                };
-                AddBudget(firstBudget, new List<User> { firstUser }, repositoryWrapper);
+                //Budget firstBudget = new Budget
+                //{
+                //    Bank = BankNameEnum.Ing,
+                //    BudgetType = BudgetTypeEnum.Personal,
+                //    Name = string.Empty,
+                //    Currency = "PLN",
+                //    BudgetBalance = 10000,
+                //    CreationDate = DateTime.Parse("2024-01-02")
+                //};
+                //await AddBudget(firstBudget, new List<User> { firstUser }, repositoryWrapper);
 
-                Budget secondBudget = new Budget
-                {
-                    Bank = BankNameEnum.Mbank,
-                    BudgetType = BudgetTypeEnum.Personal,
-                    Name = string.Empty,
-                    Currency = "PLN",
-                    BudgetBalance = 12456,
-                    CreationDate = DateTime.Parse("2024-01-04")
-                };
-                AddBudget(secondBudget, new List<User> { secondUser }, repositoryWrapper);
+                //Budget secondBudget = new Budget
+                //{
+                //    Bank = BankNameEnum.Mbank,
+                //    BudgetType = BudgetTypeEnum.Personal,
+                //    Name = string.Empty,
+                //    Currency = "PLN",
+                //    BudgetBalance = 12456,
+                //    CreationDate = DateTime.Parse("2024-01-04")
+                //};
+                //await AddBudget(secondBudget, new List<User> { secondUser }, repositoryWrapper);
 
-                Budget thirdBudget = new Budget
-                {
-                    BudgetType = BudgetTypeEnum.Partner,
-                    Name = "Partner",
-                    Currency = "PLN",
-                    CreationDate = DateTime.Parse("2024-01-11")
-                };
-                AddBudget(thirdBudget, new List<User> { firstUser, secondUser }, repositoryWrapper);
+                //Budget thirdBudget = new Budget
+                //{
+                //    BudgetType = BudgetTypeEnum.Partner,
+                //    Name = "Partner",
+                //    Currency = "PLN",
+                //    CreationDate = DateTime.Parse("2024-01-11")
+                //};
+                //await AddBudget(thirdBudget, new List<User> { firstUser, secondUser }, repositoryWrapper);
 
-                Goal firstGoal = new Goal
-                {
-                    Amount = 20000,
-                    Name = "Account balance",
-                    GoalType = GoalTypeEnum.AccountBalance,
-                    CreationDate = DateTime.Parse("2024-01-11"),
-                    Deadline = DateTime.Parse("2024-02-01"),
-                    IsMain = true
-                };
-                AddGoal(firstGoal, firstUser, repositoryWrapper);
+                //Goal firstGoal = new Goal
+                //{
+                //    Amount = 20000,
+                //    Name = "Account balance",
+                //    GoalType = GoalTypeEnum.AccountBalance,
+                //    CreationDate = DateTime.Parse("2024-01-11"),
+                //    Deadline = DateTime.Parse("2024-02-01"),
+                //    IsMain = true
+                //};
+                //await AddGoal(firstGoal, firstUser, repositoryWrapper);
 
-                Goal secondGoal = new Goal
-                {
-                    Amount = 100,
-                    Name = "Average expenses",
-                    GoalType = GoalTypeEnum.AverageExpenses,
-                    CreationDate = DateTime.Parse("2024-01-13"),
-                    Deadline = DateTime.Parse("2024-02-11"),
-                    IsMain = false
-                };
-                AddGoal(secondGoal, firstUser, repositoryWrapper);
+                //Goal secondGoal = new Goal
+                //{
+                //    Amount = 100,
+                //    Name = "Average expenses",
+                //    GoalType = GoalTypeEnum.AverageExpenses,
+                //    CreationDate = DateTime.Parse("2024-01-13"),
+                //    Deadline = DateTime.Parse("2024-02-11"),
+                //    IsMain = false
+                //};
+                //await AddGoal(secondGoal, firstUser, repositoryWrapper);
 
-                Transaction firstTransaction = new Transaction
-                {
-                    Amount = -150,
-                    Currency = "PLN",
-                    Date = DateTime.Parse("2024-01-01"),
-                    Description = "Transaction 1",
-                    AutoCategory = "Food",
-                    UserCategory = "Food",
-                };
-                AddTransaction(firstTransaction, firstUser, firstBudget, repositoryWrapper);
+                //Transaction firstTransaction = new Transaction
+                //{
+                //    Amount = -150,
+                //    Currency = "PLN",
+                //    Date = DateTime.Parse("2024-01-01"),
+                //    Description = "Transaction 1",
+                //    AutoCategory = "Food",
+                //    UserCategory = "Food",
+                //};
+                //await AddTransaction(firstTransaction, firstUser, firstBudget, repositoryWrapper);
 
-                Transaction secondTransaction = new Transaction
-                {
-                    Amount = -50.5M,
-                    Currency = "PLN",
-                    Date = DateTime.Parse("2024-01-02"),
-                    Description = "Transaction 2",
-                    AutoCategory = "Clothes",
-                    UserCategory = "Clothes",
-                };
-                AddTransaction(secondTransaction, firstUser, firstBudget, repositoryWrapper);
+                //Transaction secondTransaction = new Transaction
+                //{
+                //    Amount = -50.5M,
+                //    Currency = "PLN",
+                //    Date = DateTime.Parse("2024-01-02"),
+                //    Description = "Transaction 2",
+                //    AutoCategory = "Clothes",
+                //    UserCategory = "Clothes",
+                //};
+                //await AddTransaction(secondTransaction, firstUser, firstBudget, repositoryWrapper);
 
-                await repositoryWrapper.SaveChanges();
+                //await repositoryWrapper.SaveChanges();
             }
         }
 
-        private async Task AddUser(User user, string password, UserManager<User> userManager, 
-            RoleManager<IdentityRole<Guid>> roleManager)
+        private async Task AddUser(User user, string password, UserManager<User> userManager)
         {
             await userManager.CreateAsync(user, password);
-            await userManager.AddUserRoles(roleManager, user, new List<UserRoleEnum> { UserRoleEnum.Member });
             await userManager.AddUserClaims(user);
         }
 
-        private void AddBudget(Budget budget, List<User> users, IRepositoryWrapper repositoryWrapper)
+        private async Task AddBudget(Budget budget, List<User> users, IRepositoryWrapper repositoryWrapper)
         {
             repositoryWrapper.Budgets.Create(budget);
             users.ForEach(u => u.Budgets.Add(budget));
         }
 
-        private void AddGoal(Goal goal, User user, IRepositoryWrapper repositoryWrapper)
+        private async Task AddGoal(Goal goal, User user, IRepositoryWrapper repositoryWrapper)
         {
             repositoryWrapper.Goals.Create(goal);
             user.Goals.Add(goal);
         }
 
-        private void AddTransaction(Transaction transaction, User user, Budget budget, 
+        private async Task AddTransaction(Transaction transaction, User user, Budget budget, 
             IRepositoryWrapper repositoryWrapper)
         {
             repositoryWrapper.Transactions.Create(transaction);
