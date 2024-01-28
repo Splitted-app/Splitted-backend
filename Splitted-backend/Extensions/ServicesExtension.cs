@@ -58,7 +58,10 @@ namespace Splitted_backend.Extensions
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
             if (!LoadTokenKeys(configuration))
-                return;
+            {
+                if (!Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.Equals("Production") ?? true)
+                    return;
+            }
 
             BaseAuthenticationManager authenticationManager = services.BuildServiceProvider()
                 .GetRequiredService<BaseAuthenticationManager>();
