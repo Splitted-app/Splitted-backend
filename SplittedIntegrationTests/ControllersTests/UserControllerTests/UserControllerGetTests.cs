@@ -22,14 +22,15 @@ using Azure;
 using System.Net.Http.Headers;
 using SplittedIntegrationTests.Mocks;
 using Org.BouncyCastle.Math.EC.Endo;
+using Models.DTOs.Outgoing.Budget;
+using Models.Enums;
+using Models.DTOs.Outgoing.Goal;
 
 namespace SplittedIntegrationTests.ControllersTests.UserControllerTests
 {
-    public class UserControllerGetTests : IClassFixture<CustomWebApplicationFactory>, IClassFixture<DatabaseFixture>,
-        IAsyncLifetime
+    [Collection("WebApp Collection")]
+    public class UserControllerGetTests : IAsyncLifetime
     {
-        public ITestOutputHelper output { get; }
-
         public DatabaseFixture databaseFixture { get; }
 
         public CustomWebApplicationFactory factory { get; }
@@ -39,10 +40,8 @@ namespace SplittedIntegrationTests.ControllersTests.UserControllerTests
         private string token { get; set; } = null!;
 
 
-        public UserControllerGetTests(CustomWebApplicationFactory factory, 
-            DatabaseFixture databaseFixture, ITestOutputHelper output) 
+        public UserControllerGetTests(CustomWebApplicationFactory factory, DatabaseFixture databaseFixture) 
         {
-            this.output = output;
             this.databaseFixture = databaseFixture;
             this.factory = factory;
             this.httpClient = factory.CreateClient();
@@ -110,6 +109,178 @@ namespace SplittedIntegrationTests.ControllersTests.UserControllerTests
                 AvatarImage = null,
                 EmailConfirmed = false,
             }, options => options.Excluding(u => u.Id));
+        }
+
+        [Theory]
+        [InlineData("wrongType")]
+        [InlineData("personal, wrongType")]
+        public async Task Test_GetUserBudgetsWithInvalidData(string? budgetType)
+        {
+            string getUserBudgetsUri = $"/api/users/budgets?budgetType={budgetType}";
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await httpClient.GetAsync(getUserBudgetsUri);
+
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Theory]
+        [InlineData(null, 2)]
+        [InlineData("personal", 1)]
+        [InlineData("temporary", 0)]
+        [InlineData("personal, temporary", 1)]
+        public async Task Test_GetUserBudgetsWithProperData(string? budgetType, int count)
+        {
+            string getUserBudgetsUri = $"/api/users/budgets?budgetType={budgetType}";
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await httpClient.GetAsync(getUserBudgetsUri);
+
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            List<UserBudgetGetDTO> userBudgetGetDTOs = JsonConvert.DeserializeObject<List<UserBudgetGetDTO>>(
+                await response.Content.ReadAsStringAsync());
+
+            userBudgetGetDTOs.Should().NotBeNull();
+            userBudgetGetDTOs.Should().HaveCount(count);
+
+            if (count == 0) return;
+
+            userBudgetGetDTOs[0].Should().BeEquivalentTo(new UserBudgetGetDTO
+            {
+                Bank = BankNameEnum.Ing,
+                BudgetType = BudgetTypeEnum.Personal,
+                Name = string.Empty,
+                Currency = "PLN",
+                BudgetBalance = 10000,
+            }, options => options.Excluding(u => u.Id));
+        }
+
+        [Fact]
+        public async Task Test_GetUserFriends()
+        {
+            string getUserFriendsUri = $"/api/users/friends";
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await httpClient.GetAsync(getUserFriendsUri);
+
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            List<UserGetDTO> userFriendDTOs = JsonConvert.DeserializeObject<List<UserGetDTO>>(
+                await response.Content.ReadAsStringAsync());
+
+            userFriendDTOs.Should().NotBeNull();
+            userFriendDTOs.Should().HaveCount(1);
+
+            userFriendDTOs[0].Should().BeEquivalentTo(new UserGetDTO
+            {
+                Email = "katarzyna@example.com",
+                Username = "kate",
+                AvatarImage = null,
+                EmailConfirmed = false
+            }, options => options.Excluding(u => u.Id));
+        }
+
+        [Theory]
+        [InlineData("abc", 0)]
+        [InlineData("mat", 0)]
+        [InlineData("at", 1)]
+        public async Task Test_Search(string query, int count)
+        {
+            string searchUri = $"/api/users/search?query={query}";
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await httpClient.GetAsync(searchUri);
+
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            List<UserGetDTO> userGetDTOs = JsonConvert.DeserializeObject<List<UserGetDTO>>(
+                await response.Content.ReadAsStringAsync());
+
+            userGetDTOs.Should().NotBeNull();
+            userGetDTOs.Should().HaveCount(count);
+        }
+
+        [Fact]
+        public async Task Test_GetUserMainGoal()
+        {
+            string getUserMainGoalUri = $"/api/users/main-goal";
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await httpClient.GetAsync(getUserMainGoalUri);
+
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            GoalGetDTO goalGetDTO = JsonConvert.DeserializeObject<GoalGetDTO>(
+                await response.Content.ReadAsStringAsync());
+
+            goalGetDTO.Should().NotBeNull();
+            goalGetDTO.Should().BeEquivalentTo(new GoalGetDTO
+            {
+                Percentage = 50.0,
+                Amount = 20000,
+                Name = "Account balance",
+                GoalType = GoalTypeEnum.AccountBalance,
+                CreationDate = DateTime.Parse("2024-01-11"),
+                Deadline = DateTime.Parse("2024-02-01"),
+                IsMain = true
+            }, options => options.Excluding(g => g.Id));
+        }
+
+        [Fact]
+        public async Task Test_GetUserGoals()
+        {
+            string getUserGoalsUri = $"/api/users/goals";
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            HttpResponseMessage response = await httpClient.GetAsync(getUserGoalsUri);
+
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+            List<GoalGetDTO> goalGetDTOs = JsonConvert.DeserializeObject<List<GoalGetDTO>>(
+                await response.Content.ReadAsStringAsync());
+
+            List<GoalGetDTO> expectedGoalGetDTOs = new List<GoalGetDTO>
+            {
+                new GoalGetDTO 
+                {   
+                    Percentage = 50.0,
+                    Amount = 20000,
+                    Name = "Account balance",
+                    GoalType = GoalTypeEnum.AccountBalance,
+                    CreationDate = DateTime.Parse("2024-01-11"),
+                    Deadline = DateTime.Parse("2024-02-01"),
+                    IsMain = true
+                },
+
+                new GoalGetDTO
+                {
+                    Percentage = 100,
+                    Amount = 100,
+                    Name = "Average expenses",
+                    GoalType = GoalTypeEnum.AverageExpenses,
+                    CreationDate = DateTime.Parse("2024-01-13"),
+                    Deadline = DateTime.Parse("2024-02-11"),
+                    IsMain = false
+                }
+            };
+
+            goalGetDTOs.Should().NotBeNull();
+            goalGetDTOs.Should().HaveCount(2);
+            goalGetDTOs.Should().BeEquivalentTo(expectedGoalGetDTOs, 
+                options => options.Excluding(g => g.Id));
         }
 
         public async Task InitializeAsync()

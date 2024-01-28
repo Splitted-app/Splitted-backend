@@ -44,7 +44,7 @@ namespace AIService
         }
 
 
-        public void TrainModel(List<TransactionAITrainDTO> userTransactions, string userId)
+        public virtual void TrainModel(List<TransactionAITrainDTO> userTransactions, string userId)
         {
             using (Py.GIL())
             {
@@ -58,7 +58,7 @@ namespace AIService
             }
         }
 
-        public void CategorizeTransactions(List<TransactionCsv> importedTransactions, 
+        public virtual void CategorizeTransactions(List<TransactionCsv> importedTransactions, 
             List<TransactionAITrainDTO> importedAiTransactions, string userId)
         {
             using (Py.GIL())
@@ -105,7 +105,7 @@ namespace AIService
             return Py.Import(mainAIModule);
         }
 
-        private void InitializeExecuter()
+        protected virtual void InitializeExecuter()
         {
             Runtime.PythonDLL = pythonDllPath;
             PythonEngine.Initialize();
