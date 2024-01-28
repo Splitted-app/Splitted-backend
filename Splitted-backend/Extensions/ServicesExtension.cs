@@ -23,6 +23,7 @@ namespace Splitted_backend.Extensions
             services.AddScoped<IEmailSender, EmailSender>();
             services.AddScoped<IStorageClient, StorageClient>();
             services.AddScoped<ITimeProvider, TimeProvider>();
+            services.AddScoped<BaseAuthenticationManager, AuthenticationManager>(); 
 
             services.AddSingleton(configuration
                 .GetSection("emailConfiguration")
@@ -56,25 +57,39 @@ namespace Splitted_backend.Extensions
 
         public static void ConfigureAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            LoadTokenKeys(configuration);
-            AuthenticationManager authenticationManager = new AuthenticationManager(configuration);
+            if (!LoadTokenKeys(configuration))
+                return;
+
+            BaseAuthenticationManager authenticationManager = services.BuildServiceProvider()
+                .GetRequiredService<BaseAuthenticationManager>();
 
             services.AddAuthentication(authenticationManager.ConfigureAuthenticationSchema)
                 .AddJwtBearer(authenticationManager.ConfigureTokenValidation);
         }
 
-        private static void LoadTokenKeys(IConfiguration configuration)
+        private static bool LoadTokenKeys(IConfiguration configuration)
         {
             string? privateKeyPath = configuration["KeysPath:PrivateKeyPath"];
             string? publicKeyPath = configuration["KeysPath:PublicKeyPath"];
 
             if (privateKeyPath is not null && publicKeyPath is not null)
             {
-                configuration["Keys:PrivateKey"] = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), 
+                try
+                {
+                    configuration["Keys:PrivateKey"] = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(),
                     privateKeyPath));
-                configuration["Keys:PublicKey"] = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), 
-                    publicKeyPath));
+                    configuration["Keys:PublicKey"] = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(),
+                        publicKeyPath));
+                }
+                catch (FileNotFoundException)
+                {
+                    return false;   
+                }
+
+                return true;
             }
+
+            return false;
         }
     }
 }

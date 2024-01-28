@@ -17,8 +17,6 @@ services:
   splitted-sql-server-test:
     image: 'mcr.microsoft.com/mssql/server:2022-latest'
     container_name: splitted-sql-server-test
-    volumes:
-      - splitted-data-test:/var/opt/mssql
     ports:
       - 1633:1433
     environment:
@@ -58,7 +56,6 @@ services:
   
 volumes:
   splitted-data:
-  splitted-data-test:
 
 networks:
   frontend:
