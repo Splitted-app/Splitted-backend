@@ -259,7 +259,8 @@ namespace Splitted_backend.Controllers
                 if (budget.BudgetType.Equals(BudgetTypeEnum.Partner) || budget.BudgetType.Equals(BudgetTypeEnum.Temporary))
                     return StatusCode(403, "You cannot add new transactions to partner or temporary budget.");
 
-                if (csvFile.ContentType != "text/csv" || Path.GetExtension(csvFile.FileName) != ".csv")
+                if ((csvFile.ContentType != "text/csv" && csvFile.ContentType != "application/vnd.ms-excel") 
+                    || Path.GetExtension(csvFile.FileName) != ".csv")
                     return BadRequest("Received file is not a csv file.");
 
                 if (bank.Equals(BankNameEnum.Other))
